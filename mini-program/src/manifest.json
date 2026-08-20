@@ -1,0 +1,38 @@
+{
+  "name": "Arya_handcraft",
+  "appid": "wxa8c423327b9452ec",
+  "description": "Arya_handcraft 手作毛毡猫咪",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    }
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "wxa8c423327b9452ec",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "lazyCodeLoading": "requiredComponents"
+  },
+  "h5": {
+    "title": "Arya_handcraft",
+    "router": {
+      "mode": "hash"
+    }
+  },
+  "vueVersion": "3"
+}

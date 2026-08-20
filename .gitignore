@@ -1,0 +1,86 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
+
+.eslintcache
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# Vitest
+__screenshots__/
+
+# Vite
+*.timestamp-*-*.mjs
+
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+server/.env
+server/.env.*
+!server/.env.example
+
+# 通用忽略规则
+.DS_Store
+.idea
+.vscode
+*.log
+*.swp
+*.local
+
+# 根目录敏感文件
+.env
+.env.*
+!.env.example
+
+# API 服务端忽略
+server/.venv/
+server/venv/
+server/__pycache__/
+server/*.env
+server/alembic.ini
+server/logs/
+
+# 管理后台忽略
+admin-web/node_modules/
+admin-web/dist/
+admin-web/.nuxt/
+admin-web/.output/
+admin-web/.env
+
+# 小程序忽略
+mini-program/node_modules/
+mini-program/dist/
+mini-program/.env
+mini-program/*.log
+
+# markdown文件
+preplan.md

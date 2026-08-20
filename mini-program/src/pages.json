@@ -1,0 +1,90 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^van-(.*)": "@vant/weapp/lib/$1/index"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "Arya_handcraft"
+      }
+    },
+    {
+      "path": "pages/video/video",
+      "style": {
+        "navigationBarTitleText": "毛毡猫咪视频"
+      }
+    },
+    {
+      "path": "pages/article/article",
+      "style": {
+        "navigationBarTitleText": "文章"
+      }
+    },
+    {
+      "path": "pages/arya/arya",
+      "style": {
+        "navigationBarTitleText": "Arya 智能助手"
+      }
+    },
+    {
+      "path": "pages/mine/mine",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/article/detail",
+      "style": {
+        "navigationBarTitleText": "文章详情"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "Arya_handcraft",
+    "navigationBarBackgroundColor": "#FAF6F0",
+    "backgroundColor": "#FAF6F0"
+  },
+  "tabBar": {
+    "color": "#B9B1AC",
+    "selectedColor": "#C9A9A6",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tab-home.png",
+        "selectedIconPath": "static/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/video/video",
+        "text": "视频",
+        "iconPath": "static/tab-video.png",
+        "selectedIconPath": "static/tab-video-active.png"
+      },
+      {
+        "pagePath": "pages/article/article",
+        "text": "文章",
+        "iconPath": "static/tab-article.png",
+        "selectedIconPath": "static/tab-article-active.png"
+      },
+      {
+        "pagePath": "pages/arya/arya",
+        "text": "Arya",
+        "iconPath": "static/tab-arya.png",
+        "selectedIconPath": "static/tab-arya-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "static/tab-mine.png",
+        "selectedIconPath": "static/tab-mine-active.png"
+      }
+    ]
+  }
+}
