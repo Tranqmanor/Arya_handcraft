@@ -1,1 +1,23 @@
-<view class="welcome data-v-d069a759"><view class="paw-wrap data-v-d069a759"><image class="paw data-v-d069a759" src="{{a}}" mode="aspectFit"/></view><view class="brand data-v-d069a759"><text class="name data-v-d069a759">Arya_handcraft</text><text class="sub data-v-d069a759">手作毛毡猫咪 · 温暖相伴</text></view><view class="loading-dots data-v-d069a759"><view class="dot data-v-d069a759"/><view class="dot data-v-d069a759"/><view class="dot data-v-d069a759"/></view></view>
+<view class="container data-v-19c3c914">
+  <view wx:if="{{a}}" class="welcome data-v-19c3c914">
+    <view class="paw-wrap data-v-19c3c914">
+      <image class="paw data-v-19c3c914" src="{{b}}" mode="aspectFit" />
+    </view>
+    <view class="brand data-v-19c3c914"><text class="name data-v-19c3c914">Arya_handcraft</text><text class="sub data-v-19c3c914">手作毛毡猫咪 · 温暖相伴</text></view>
+    <view class="loading-dots data-v-19c3c914">
+      <view class="dot data-v-19c3c914" />
+      <view class="dot data-v-19c3c914" />
+      <view class="dot data-v-19c3c914" />
+    </view>
+  </view>
+  <view wx:else class="carousel-container data-v-19c3c914">
+    <swiper vertical="{{true}}" circular="{{false}}" indicator-dots="{{e}}" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff" interval="{{3000}}" duration="{{500}}" class="full-swiper data-v-19c3c914" bindchange="{{f}}">
+      <swiper-item wx:for="{{c}}" wx:for-item="item" wx:key="c" class="data-v-19c3c914">
+        <image src="{{item.a}}" class="carousel-image data-v-19c3c914" mode="aspectFill" bindtap="{{item.b}}" />
+      </swiper-item>
+      <swiper-item wx:if="{{d}}" class="data-v-19c3c914">
+        <view class="empty-state data-v-19c3c914"><text class="empty-text data-v-19c3c914">暂无轮播图</text></view>
+      </swiper-item>
+    </swiper>
+  </view>
+</view>

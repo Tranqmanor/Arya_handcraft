@@ -80,6 +80,23 @@ class CouponAdminOut(BaseModel):
         return float(v)
 
 
+# ---------- 轮播图管理 ----------
+class AdminCarouselImageCreate(BaseModel):
+    image_url: str
+    title: str = ""
+    description: str = ""
+    is_published: bool = True
+    sort_order: int = 0
+
+
+class AdminCarouselImageUpdate(BaseModel):
+    image_url: str | None = None
+    title: str | None = None
+    description: str | None = None
+    is_published: bool | None = None
+    sort_order: int | None = None
+
+
 # ---------- 用户简表 ----------
 class AdminUserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)

@@ -37,6 +37,11 @@ const router = createRouter({
           name: 'coupons',
           component: () => import('@/views/CouponsView.vue'),
         },
+        {
+          path: 'carousel',
+          name: 'carousel',
+          component: () => import('@/views/CarouselView.vue'),
+        },
       ],
     },
   ],

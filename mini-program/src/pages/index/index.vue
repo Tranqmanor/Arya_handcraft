@@ -1,30 +1,97 @@
 <template>
-  <view class="welcome">
-    <view class="paw-wrap">
-      <image class="paw" src="/static/logo-paw.png" mode="aspectFit" />
+  <view class="container">
+    <!-- 欢迎界面 -->
+    <view v-if="showWelcome" class="welcome">
+      <view class="paw-wrap">
+        <image class="paw" src="/static/logo-paw.png" mode="aspectFit" />
+      </view>
+      <view class="brand">
+        <text class="name">Arya_handcraft</text>
+        <text class="sub">手作毛毡猫咪 · 温暖相伴</text>
+      </view>
+      <view class="loading-dots">
+        <view class="dot" />
+        <view class="dot" />
+        <view class="dot" />
+      </view>
     </view>
-    <view class="brand">
-      <text class="name">Arya_handcraft</text>
-      <text class="sub">手作毛毡猫咪 · 温暖相伴</text>
-    </view>
-    <view class="loading-dots">
-      <view class="dot" />
-      <view class="dot" />
-      <view class="dot" />
+
+    <!-- 全屏竖图轮播 -->
+    <view v-else class="carousel-container">
+      <swiper
+        :vertical="true"
+        :circular="false"
+        :indicator-dots="carouselImages.length > 1"
+        indicator-color="rgba(255,255,255,0.5)"
+        indicator-active-color="#fff"
+        :interval="3000"
+        :duration="500"
+        class="full-swiper"
+        @change="onSwiperChange"
+      >
+        <swiper-item v-for="item in carouselImages" :key="item.id">
+          <image
+            :src="item.image_url"
+            class="carousel-image"
+            mode="aspectFill"
+            @tap="handleImageTap"
+          />
+        </swiper-item>
+        <!-- 空状态 -->
+        <swiper-item v-if="carouselImages.length === 0">
+          <view class="empty-state">
+            <text class="empty-text">暂无轮播图</text>
+          </view>
+        </swiper-item>
+      </swiper>
     </view>
   </view>
 </template>
-<script setup lang="ts">
-import { onLoad } from '@dcloudio/uni-app'
 
-onLoad(() => {
-  // 欢迎页停留 2 秒后进入视频页
-  setTimeout(() => {
-    uni.reLaunch({ url: '/pages/video/video' })
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { getCarouselImages, CarouselImageItem } from '@/api/carousel'
+
+const showWelcome = ref(true)
+const carouselImages = ref<CarouselImageItem[]>([])
+const currentIndex = ref(0)
+
+let welcomeTimer: any = null
+
+onMounted(async () => {
+  // 加载轮播图数据
+  try {
+    carouselImages.value = await getCarouselImages()
+  } catch (error) {
+    console.error('加载轮播图失败:', error)
+  }
+
+  // 欢迎界面停留 2 秒后进入轮播
+  welcomeTimer = setTimeout(() => {
+    showWelcome.value = false
   }, 2000)
 })
+
+function onSwiperChange(e: any) {
+  currentIndex.value = e.detail.current
+}
+
+function handleImageTap() {
+  // 可在此扩展点击事件，例如全屏预览
+  uni.previewImage({
+    urls: carouselImages.value.map(img => img.image_url),
+    current: carouselImages.value[currentIndex.value].image_url,
+  })
+}
 </script>
+
 <style scoped lang="scss">
+.container {
+  width: 100%;
+  height: 100vh;
+}
+
+/* 欢迎界面 */
 .welcome {
   height: 100vh;
   display: flex;
@@ -125,5 +192,38 @@ onLoad(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* 轮播图容器 */
+.carousel-container {
+  width: 100%;
+  height: 100vh;
+  background: #000;
+}
+
+/* 全屏轮播 */
+.full-swiper {
+  width: 100%;
+  height: 100%;
+}
+
+/* 轮播图图片 */
+.carousel-image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 空状态 */
+.empty-state {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #faf6f0 0%, #eadcd9 100%);
+}
+.empty-text {
+  font-size: 28rpx;
+  color: $arya-dove;
 }
 </style>

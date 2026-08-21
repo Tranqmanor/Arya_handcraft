@@ -30,6 +30,7 @@ onMounted(loadStats)
         <el-menu-item index="/dashboard/videos">视频管理</el-menu-item>
         <el-menu-item index="/dashboard/articles">文章管理</el-menu-item>
         <el-menu-item index="/dashboard/coupons">优惠券</el-menu-item>
+        <el-menu-item index="/dashboard/carousel">轮播图管理</el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

@@ -96,3 +96,27 @@ export function grantCoupon(data: { user_id: number; title: string; amount: numb
 export function searchUsers(q = '') {
   return http.get('/admin/coupons/users', { params: { q } }) as Promise<UserOption[]>
 }
+
+// ===== 轮播图管理 =====
+export interface AdminCarouselImage {
+  id: number
+  image_url: string
+  title: string
+  description: string
+  sort_order: number
+  is_published: boolean
+  created_at: string
+}
+
+export function listCarouselImages() {
+  return http.get('/admin/carousel') as Promise<AdminCarouselImage[]>
+}
+export function createCarouselImage(data: Partial<AdminCarouselImage>) {
+  return http.post('/admin/carousel', data) as Promise<AdminCarouselImage>
+}
+export function updateCarouselImage(id: number, data: Partial<AdminCarouselImage>) {
+  return http.put(`/admin/carousel/${id}`, data) as Promise<AdminCarouselImage>
+}
+export function deleteCarouselImage(id: number) {
+  return http.delete(`/admin/carousel/${id}`) as Promise<{ detail: string }>
+}
