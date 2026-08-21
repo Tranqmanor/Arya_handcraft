@@ -10,11 +10,11 @@ class Settings(BaseSettings):
     ENV: str = "dev"
 
     # 数据库
-    DATABASE_URL: str = "postgresql+psycopg://arya:arya_dev@localhost:5432/arya_handcraft"
-    REDIS_URL: str = "redis://localhost:6379/0"
+    DATABASE_URL: str = ""
+    REDIS_URL: str = ""
 
     # JWT
-    JWT_SECRET: str = "AyNofhIZ4Ef9QwCZQJgUBkMiMflmCTQW4Rki98eLPj_h8UlH9XLQCmOxMYTLV6I1QZljRTInzNXR7JWlHBNXjw"
+    JWT_SECRET: str = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "deepseek-chat"
 
     # 管理后台初始密码
-    ADMIN_INIT_PASSWORD: str = "admin123"
+    ADMIN_INIT_PASSWORD: str = ""
 
 
 @lru_cache

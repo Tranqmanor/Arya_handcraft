@@ -66,7 +66,7 @@ server/.venv/
 server/venv/
 server/__pycache__/
 server/*.env
-server/alembic.ini
+# server/alembic.ini  # 不再忽略，Railway 部署需要
 server/logs/
 
 # 管理后台忽略

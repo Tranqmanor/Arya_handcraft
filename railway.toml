@@ -1,0 +1,14 @@
+[build]
+builder = "DOCKERFILE"
+buildContext = "server"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/v1/health"
+healthcheckTimeoutSeconds = 10
+restartPolicy = "ON_FAILURE"
+
+[[services]]
+name = "arya-handcraft-api"
+rootDirectory = "server"
+port = 8000
