@@ -1,0 +1,1 @@
+"use strict";const t=require("./request.js");exports.getArticle=function(e){return t.http.get(`/articles/${e}`)},exports.getArticles=function(){return t.http.get("/articles")},exports.reportArticleView=function(e){return t.http.post(`/articles/${e}/view`,{})};

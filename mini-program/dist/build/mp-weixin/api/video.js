@@ -1,0 +1,1 @@
+"use strict";const e=require("./request.js");exports.getVideos=function(){return e.http.get("/videos")},exports.reportVideoView=function(t,r){return e.http.post(`/videos/${t}/view`,{viewer_key:r},!1)};

@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "Arya 智能助手",
+  "usingComponents": {
+    "contact-modal": "../../components/contact-modal"
+  }
+}

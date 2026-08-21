@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,Symbol.toStringTag,{value:"Module"});const e=require("./common/vendor.js");Math;const n=e.defineComponent({__name:"App",setup:n=>(e.onLaunch(()=>{console.log("Arya_handcraft launch")}),()=>{})});function t(){const t=e.createSSRApp(n);return t.use(e.createPinia()),{app:t}}t().app.mount("#app"),exports.createApp=t;

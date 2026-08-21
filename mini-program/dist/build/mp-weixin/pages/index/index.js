@@ -1,0 +1,1 @@
+"use strict";const e=require("../../common/vendor.js"),o=require("../../common/assets.js"),s=e.defineComponent({__name:"index",setup:s=>(e.onLoad(()=>{setTimeout(()=>{e.index.reLaunch({url:"/pages/video/video"})},2e3)}),(e,s)=>({a:o._imports_0}))}),n=e._export_sfc(s,[["__scopeId","data-v-d069a759"]]);wx.createPage(n);

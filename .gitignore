@@ -71,14 +71,12 @@ server/logs/
 
 # 管理后台忽略
 admin-web/node_modules/
-admin-web/dist/
 admin-web/.nuxt/
 admin-web/.output/
 admin-web/.env
 
 # 小程序忽略
 mini-program/node_modules/
-mini-program/dist/
 mini-program/.env
 mini-program/*.log
 
