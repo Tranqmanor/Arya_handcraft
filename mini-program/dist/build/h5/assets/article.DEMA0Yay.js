@@ -1,1 +1,0 @@
-import{h as t}from"./request.CfKJU5FB.js";function r(){return t.get("/articles")}function e(r){return t.get(`/articles/${r}`)}function s(r){return t.post(`/articles/${r}/view`,{})}export{e as a,r as g,s as r};

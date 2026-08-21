@@ -58,6 +58,7 @@
 
     <contact-modal :visible="contactVisible" @close="contactVisible = false" />
   </view>
+</template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
@@ -144,6 +145,8 @@ async function handleLogout() {
   await userStore.logout()
   coupons.value = []
   uni.showToast({ title: '已退出', icon: 'none' })
+}
+</script>
 
 <style scoped lang="scss">
 .mine-page {
@@ -304,8 +307,3 @@ async function handleLogout() {
   font-weight: 500;
 }
 </style>
-
-}
-</script>
-
-</template>
