@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     ENV: str = "dev"
 
     # 数据库
-    DATABASE_URL: str = ""
-    REDIS_URL: str = ""
+    DATABASE_URL: str = "postgresql+psycopg://arya:arya_dev@localhost:5432/arya_handcraft"
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     # JWT
     JWT_SECRET: str = ""
