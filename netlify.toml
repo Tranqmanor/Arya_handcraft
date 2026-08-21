@@ -1,0 +1,9 @@
+[build]
+base = ""
+command = "echo 'Using pre-built assets'"
+publish = "admin-web/dist"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
