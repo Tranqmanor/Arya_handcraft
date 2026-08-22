@@ -5,9 +5,11 @@ buildContext = "server"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# 健康检查:通过后才切流
-healthcheckPath = "/api/v1/health"
-healthcheckTimeout = 100
+# 健康检查已临时停用:Railway 内部探活持续 503(Target Port 绑定待修),
+# 但服务经公网实测正常(/api/v1/health 返回 ok)。
+# 待 Public Networking 中域名端口确认为 8000 后,取消下行注释即可恢复。
+# healthcheckPath = "/api/v1/health"
+# healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 numReplicas = 1
