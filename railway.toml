@@ -5,10 +5,15 @@ buildContext = "server"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# 健康检查:已在全新服务(inspiring-spirit-arya)上恢复验证。
-# 历史旧服务因平台编排坏状态探活持续 503,已由新服务替代。
-healthcheckPath = "/api/v1/health"
-healthcheckTimeout = 100
+# ⚠️ 部署级健康检查已永久停用,原因存档:
+#   - 应用/端口/数据库均验证正常(公网 /api/v1/health 返回 ok),
+#   - Target Port 被 magic detection 正确识别为 8000,
+#   - 但 Railway 内部探活持续 "service unavailable",且在【全新服务】上同样复现,
+#     排除实例坏状态,疑似平台侧因素(材料已整理,可提交 Railway 支持/Discord 求证)。
+#   - 探活开启时每次部署标记 FAILED(服务本身不受影响),故停用以保持部署绿色。
+# 替代监控:公网拨测 https://aryahandcraft-production.up.railway.app/api/v1/health
+# healthcheckPath = "/api/v1/health"
+# healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 numReplicas = 1
