@@ -9,25 +9,25 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "Arya_handcraft"
+        "navigationBarTitleText": "Arya手作"
       }
     },
     {
       "path": "pages/video/video",
       "style": {
-        "navigationBarTitleText": "毛毡猫咪视频"
+        "navigationBarTitleText": "成品展示vlog"
       }
     },
     {
       "path": "pages/article/article",
       "style": {
-        "navigationBarTitleText": "文章"
+        "navigationBarTitleText": "关于毛毡猫咪"
       }
     },
     {
       "path": "pages/arya/arya",
       "style": {
-        "navigationBarTitleText": "Arya 智能助手"
+        "navigationBarTitleText": "Arya智能小助手"
       }
     },
     {
@@ -45,7 +45,7 @@
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "Arya_handcraft",
+    "navigationBarTitleText": "Arya手作",
     "navigationBarBackgroundColor": "#FAF6F0",
     "backgroundColor": "#FAF6F0"
   },

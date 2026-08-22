@@ -6,7 +6,8 @@
         <image class="paw" src="/static/logo.png" mode="aspectFit" />
       </view>
       <view class="brand">
-        <text class="name">Arya_handcraft</text>
+        <text class="name">Arya手作</text>
+        <text class="en-name">Arya Handcraft</text>
         <text class="sub">手作毛毡猫咪</text>
       </view>
       <view class="loading-dots">
@@ -147,6 +148,14 @@
       font-weight: 700;
       color: $arya-clay;
       letter-spacing: 4rpx;
+    }
+
+    /* 英文品牌小字 */
+    .en-name {
+      margin-top: 12rpx;
+      font-size: 24rpx;
+      color: $arya-dove;
+      letter-spacing: 6rpx;
     }
 
     .sub {
