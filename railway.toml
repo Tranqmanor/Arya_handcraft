@@ -5,11 +5,11 @@ buildContext = "server"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# 健康检查:通过后才切流。
-# 历史:曾因平台编排坏状态持续 503 而临时停用;重新 Generate Domain 刷新端口绑定后恢复。
-# 若再次出现全量 503,优先按 docs/cloudflare-pages.md 排查,必要时注释以下两行回退。
-healthcheckPath = "/api/v1/health"
-healthcheckTimeout = 100
+# 健康检查暂时停用:应用与公网均正常(见 /api/v1/health),但平台内部探活持续 503,
+# 已确认 Target Port 正确(magic detected 8000)、无崩溃、DB 连通——疑似平台编排问题,
+# 已联系 Railway 支持(附诊断材料)。结论出来前保持停用,避免每次部署标记 FAILED。
+# healthcheckPath = "/api/v1/health"
+# healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 numReplicas = 1
