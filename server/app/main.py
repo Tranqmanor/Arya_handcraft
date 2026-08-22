@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,13 +9,19 @@ from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.db.session import SessionLocal
 
+logger = logging.getLogger("arya")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时确保默认管理员存在(账号 admin,密码来自 .env ADMIN_INIT_PASSWORD)
+    # 启动时确保默认管理员存在(账号 admin,密码来自 .env ADMIN_INIT_PASSWORD)。
+    # 失败不阻塞进程启动:数据库暂不可达/迁移未完成时,应用仍可启动,
+    # 便于通过 /docs 与日志排查;数据库就绪后重启即可完成初始化。
     db = SessionLocal()
     try:
         ensure_default_admin(db)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("ensure_default_admin failed (DB not ready?): %s", exc)
     finally:
         db.close()
     yield
