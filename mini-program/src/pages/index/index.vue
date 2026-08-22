@@ -50,7 +50,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getCarouselImages, CarouselImageItem } from '@/api/carousel'
+import { getCarouselImages } from '@/api/carousel'
+import type { CarouselImageItem } from '@/api/carousel'
 
 const showWelcome = ref(true)
 const carouselImages = ref<CarouselImageItem[]>([])
