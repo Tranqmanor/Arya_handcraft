@@ -1,14 +1,16 @@
+# Railway 配置(config as code):https://docs.railway.app/reference/config-as-code
 [build]
 builder = "DOCKERFILE"
 buildContext = "server"
 dockerfilePath = "Dockerfile"
 
 [deploy]
+# 健康检查:通过后才切流
 healthcheckPath = "/api/v1/health"
-healthcheckTimeoutSeconds = 10
-restartPolicy = "ON_FAILURE"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+numReplicas = 1
 
-[[services]]
-name = "arya-handcraft-api"
-rootDirectory = "server"
-port = 8000
+# 注意:容器目标端口(Target Port=8000)在 Dashboard → Settings → Networking 中设置;
+# railway.toml 没有 services/port 段,之前文件里的 [[services]] 写法无效已被移除。
