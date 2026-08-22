@@ -6,6 +6,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.core import ratelimit
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app as fastapi_app
@@ -19,6 +20,14 @@ def _bigint_sqlite(type_, compiler, **kw):
 
 
 TEST_SQLALCHEMY_URL = "sqlite://"
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limit():
+    """每个测试独立限流窗口,避免进程级计数跨测试污染。"""
+    ratelimit.reset()
+    yield
+    ratelimit.reset()
 
 
 @pytest.fixture()

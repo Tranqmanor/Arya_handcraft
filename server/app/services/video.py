@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import Video, VideoView
@@ -29,6 +30,12 @@ def record_view(db: Session, video: Video, viewer_key: str) -> tuple[int, bool]:
         return video.view_count, False
 
     db.add(VideoView(video_id=video.id, viewer_key=viewer_key))
-    video.view_count += 1
-    db.commit()
+    try:
+        video.view_count += 1
+        db.commit()
+    except IntegrityError:
+        # 并发竞态:同一 (video_id, viewer_key) 已被其他请求先插入(唯一约束兜底)
+        db.rollback()
+        db.refresh(video)
+        return video.view_count, False
     return video.view_count, True

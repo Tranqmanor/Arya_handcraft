@@ -84,3 +84,42 @@ def test_view_anonymous_uses_viewer_key(client, db_session):
     r3 = client.post(f"/api/v1/videos/{video_id}/view", params={"viewer_key": "device-abc"})
     assert r3.json()["view_count"] == 2
     assert r3.json()["viewed"] is False
+
+
+def test_view_rate_limited_per_ip(client, db_session, monkeypatch):
+    """同一 IP 超过上报阈值后应返回 429(防换 key 刷量)。"""
+    from app.api.v1 import videos as videos_api
+
+    db = db_session()
+    v = _add_video(db)
+    video_id = v.id
+    db.close()
+
+    monkeypatch.setattr(videos_api, "VIEW_ATTEMPT_LIMIT", 3)
+
+    for _ in range(3):
+        resp = client.post(f"/api/v1/videos/{video_id}/view")
+        assert resp.status_code == 200
+
+    blocked = client.post(f"/api/v1/videos/{video_id}/view")
+    assert blocked.status_code == 429
+
+
+def test_view_same_key_different_ip_counts_again(client, db_session):
+    """同一指纹来自不同来源 IP → 服务端组合键不同,计为新观众。"""
+    db = db_session()
+    v = _add_video(db)
+    video_id = v.id
+    db.close()
+
+    url = f"/api/v1/videos/{video_id}/view"
+    r1 = client.post(url, params={"viewer_key": "device-x"})
+    assert r1.json()["view_count"] == 1
+
+    r2 = client.post(
+        url,
+        params={"viewer_key": "device-x"},
+        headers={"X-Forwarded-For": "203.0.113.9"},
+    )
+    assert r2.status_code == 200
+    assert r2.json()["view_count"] == 2
