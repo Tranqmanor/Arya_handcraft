@@ -4,10 +4,10 @@
 
 ## 0. 架构总览
 
-| 应用 | 仓库目录 | 构建命令 | 输出目录 | Pages 项目名(建议) |
+| 应用 | 仓库目录 | 构建命令 | 输出目录 | Pages 项目名(实际) |
 |---|---|---|---|---|
-| H5 顾客端 | `mini-program/` | `npm ci && npm run build:h5` | `dist/build/h5` | `arya-h5` |
-| 管理后台 | `admin-web/` | `npm ci && npm run build` | `dist` | `arya-admin` |
+| H5 顾客端 | `mini-program/` | `npm ci && npm run build:h5` | `dist/build/h5` | `arya-handcraft-h5` |
+| 管理后台 | `admin-web/` | `npm ci && npm run build` | `dist` | `arya-handcraft-admin` |
 
 > ⚠️ 一个 Pages 项目只能绑定一个输出目录,因此需要创建 **两个** Pages 项目。
 
@@ -15,7 +15,7 @@
 
 1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**,授权并选择本 GitHub 仓库(`Tranqmanor/Arya_handcraft`,分支 `main`)。
 2. 项目一(H5):
-   - **Project name**: `arya-h5`
+   - **Project name**: `arya-handcraft-h5`
    - **Production branch**: `main`
    - **Framework preset**: 无(None)
    - **Build command**: `npm ci && npm run build:h5`
@@ -25,7 +25,7 @@
      - `NODE_VERSION` = `20`
      - `VITE_API_BASE` = `https://aryahandcraft-production.up.railway.app/api/v1`(已在 `.env.production` 内置,此处可不填)
 3. 项目二(管理后台):再次 Create application → Pages → 选同一仓库:
-   - **Project name**: `arya-admin`
+   - **Project name**: `arya-handcraft-admin`
    - **Build command**: `npm ci && npm run build`
    - **Build output directory**: `dist`
    - **Root directory(高级)**: `admin-web`
@@ -41,28 +41,31 @@
 npx wrangler login
 
 # 创建项目(首次)
-npx wrangler pages project create arya-h5   --production-branch main
-npx wrangler pages project create arya-admin --production-branch main
+npx wrangler pages project create arya-handcraft-h5    --production-branch main
+npx wrangler pages project create arya-handcraft-admin --production-branch main
 
 # 本地构建
 cd mini-program && npm ci && npm run build:h5 && cd ..
 cd admin-web   && npm ci && npm run build    && cd ..
 
 # 直传(生产环境)
-npx wrangler pages deploy mini-program/dist/build/h5 --project-name arya-h5   --branch main
-npx wrangler pages deploy admin-web/dist             --project-name arya-admin --branch main
+npx wrangler pages deploy mini-program/dist/build/h5 --project-name arya-handcraft-h5    --branch main
+npx wrangler pages deploy admin-web/dist             --project-name arya-handcraft-admin --branch main
 ```
 
 ## 3. 部署后必做:后端 CORS 白名单
 
-后端已按环境收敛 CORS(见 `server/app/main.py`)。拿到 Pages 域名后(形如 `https://arya-h5.pages.dev`),在 **Railway 服务变量** 中追加/确认:
+后端已按环境收敛 CORS(见 `server/app/main.py`)。拿到 Pages 域名后,在 **Railway 共享变量(Shared Variables)** 中追加/确认:
 
 ```
 ENV=prod
-CORS_ORIGINS=https://arya-h5.pages.dev,https://arya-admin.pages.dev
+CORS_ORIGINS=https://arya-handcraft-h5.pages.dev,https://arya-handcraft-admin.pages.dev
 ```
 
-> 不配置会导致浏览器端跨域被拦截(H5 页面与后台接口全部请求失败)。
+> ⚠️ **血泪教训**:Pages 域名 = `<项目名>.pages.dev`,**项目名一旦创建即决定域名**。
+> 本项目实际域名为 `arya-handcraft-*.pages.dev`(而非早期文档预测的 `arya-*.pages.dev`),
+> 两者不一致时浏览器跨域被拦,后台登录只会显示"请求失败"且 Network 面板为 CORS error。
+> 修改变量后 Railway 自动重部署,浏览器硬刷新(Ctrl+Shift+R)验证。
 > 自定义域名绑定后,把正式域名也追加进 `CORS_ORIGINS` 并重启服务。
 
 ## 4. 常见问题
