@@ -1,1 +1,0 @@
-import{h as r}from"./_plugin-vue_export-helper.DqMux_fH.js";function t(){return r.get("/articles")}function e(t){return r.get(`/articles/${t}`)}function n(t){return r.post(`/articles/${t}/view`,{})}export{e as a,t as g,n as r};

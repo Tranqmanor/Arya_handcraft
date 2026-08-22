@@ -1,1 +1,0 @@
-"use strict";const e=require("../common/vendor.js");exports.getDeviceKey=function(){let t=e.index.getStorageSync("device_key");return t||(t=`dev-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,e.index.setStorageSync("device_key",t)),t};
