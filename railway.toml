@@ -5,11 +5,10 @@ buildContext = "server"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# 健康检查暂时停用:应用与公网均正常(见 /api/v1/health),但平台内部探活持续 503,
-# 已确认 Target Port 正确(magic detected 8000)、无崩溃、DB 连通——疑似平台编排问题,
-# 已联系 Railway 支持(附诊断材料)。结论出来前保持停用,避免每次部署标记 FAILED。
-# healthcheckPath = "/api/v1/health"
-# healthcheckTimeout = 100
+# 健康检查:已在全新服务(inspiring-spirit-arya)上恢复验证。
+# 历史旧服务因平台编排坏状态探活持续 503,已由新服务替代。
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 numReplicas = 1
