@@ -19,12 +19,12 @@
     <!-- 竖图轮播(卡片式:四周留边、四角圆角、图下展示标题与描述) -->
     <view v-else class="carousel-container">
       <swiper :vertical="true" :circular="false" :indicator-dots="carouselImages.length > 1"
-        indicator-color="rgba(169,139,132,0.25)" indicator-active-color="#a98b84" :interval="3000" :duration="500"
+        indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff" :interval="3000" :duration="500"
         class="full-swiper" @change="onSwiperChange">
         <swiper-item v-for="item in carouselImages" :key="item.id">
           <view class="slide" @tap="handleImageTap">
             <image :src="item.image_url" class="carousel-image" mode="aspectFill" />
-            <view class="slide-info">
+            <view v-if="item.title || item.description" class="slide-overlay">
               <text class="slide-title">{{ item.title }}</text>
               <text v-if="item.description" class="slide-desc">{{ item.description }}</text>
             </view>
@@ -223,45 +223,50 @@
 
     /* 单张轮播卡片:四角圆角 + 轻阴影 */
     .slide {
+      position: relative;
       width: 100%;
       height: 100%;
-      display: flex;
-      flex-direction: column;
       overflow: hidden;
       border-radius: 28rpx;
       background: #fff;
       box-shadow: 0 8rpx 24rpx rgba(90, 83, 80, 0.12);
     }
 
-    /* 轮播图图片:占满卡片上部 */
+    /* 轮播图图片:铺满整张圆角卡片 */
     .carousel-image {
       display: block;
       width: 100%;
-      flex: 1;
-      min-height: 0;
+      height: 100%;
     }
 
-    /* 图片下方信息区:标题与描述靠左对齐 */
-    .slide-info {
-      padding: 20rpx 24rpx 28rpx;
+    /* 文字叠加层:压在图片底部,渐变暗化保证可读性,靠左对齐 */
+    .slide-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 72rpx 24rpx 28rpx;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 100%);
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       text-align: left;
+      pointer-events: none; /* 点击穿透到图片(预览大图) */
     }
 
     .slide-title {
       font-size: 30rpx;
       font-weight: 700;
-      color: $arya-clay;
+      color: #fff;
       letter-spacing: 2rpx;
+      text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.35);
     }
 
     .slide-desc {
       margin-top: 10rpx;
       font-size: 24rpx;
       line-height: 1.6;
-      color: $arya-dove;
+      color: rgba(255, 255, 255, 0.88);
     }
 
     /* 空状态(卡片式圆角) */
