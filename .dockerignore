@@ -1,0 +1,20 @@
+# 仓库根构建上下文排除规则(保护敏感文件与无关内容)
+# 注意:.env 含真实密钥,严禁进入任何镜像层
+**/.env
+**/.env.*
+!**/.env.example
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/node_modules/
+admin-web/dist/
+mini-program/dist/
+*.log
+logs/
+.git/
+.vscode/
+docs/
+original_resources/
+scripts/
