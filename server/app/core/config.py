@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     # 运行环境
     ENV: str = "dev"
 
+    # CORS 允许来源(逗号分隔,如 https://xxx.pages.dev,https://admin.example.com)
+    # ENV=dev 且未配置时放行所有;其他情况未配置则不允许任何跨域来源
+    CORS_ORIGINS: str = ""
+
     # 数据库
     DATABASE_URL: str = "postgresql+psycopg://arya:arya_dev@localhost:5432/arya_handcraft"
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -28,10 +32,16 @@ class Settings(BaseSettings):
     # 大模型(DeepSeek,OpenAI 兼容)
     LLM_BASE_URL: str = "https://api.deepseek.com/v1"
     LLM_API_KEY: str = ""
-    LLM_MODEL: str = "deepseek-chat"
+    LLM_MODEL: str = "deepseek-v4-flash"
 
     # 管理后台初始密码
     ADMIN_INIT_PASSWORD: str = ""
+
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """解析 CORS_ORIGINS 为来源列表。"""
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
 
 @lru_cache

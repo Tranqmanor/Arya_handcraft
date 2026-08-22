@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.admin.deps import ensure_default_admin
 from app.api.v1.router import api_router
+from app.core.config import get_settings
 from app.db.session import SessionLocal
 
 
@@ -27,10 +28,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# 开发期全放行;生产环境收敛为 H5/后台域名
+# CORS:配置了 CORS_ORIGINS 白名单则严格收敛;
+# 未配置时仅开发环境(ENV=dev)放行所有,生产环境不放开任何跨域来源
+_settings = get_settings()
+if _settings.cors_origin_list:
+    _allow_origins = _settings.cors_origin_list
+elif _settings.ENV == "dev":
+    _allow_origins = ["*"]
+else:
+    _allow_origins = []
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allow_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
