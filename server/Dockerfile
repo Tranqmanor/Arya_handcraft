@@ -1,4 +1,6 @@
-FROM python:3.12-slim
+# 基础镜像:使用 AWS ECR Public 的官方同步副本(与 docker hub python:3.12-slim 相同),
+# 避免 Railway 构建 Docker Hub 限流导致的 "service unavailable" 重试失败
+FROM public.ecr.aws/docker/library/python:3.12-slim
 
 WORKDIR /app
 
