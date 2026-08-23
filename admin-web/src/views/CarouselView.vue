@@ -108,7 +108,8 @@ onMounted(load)
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" :title="editing ? '编辑轮播图' : '新增轮播图'" width="520px">
+    <el-dialog v-model="dialogVisible" :title="editing ? '编辑轮播图' : '新增轮播图'" width="520px"
+      :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-form label-width="80px">
         <el-form-item label="图片URL">
           <el-input v-model="form.image_url" placeholder="Cloudflare R2 或 CDN 地址" />

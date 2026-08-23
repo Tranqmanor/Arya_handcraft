@@ -108,7 +108,8 @@ onMounted(load)
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" :title="editing ? '编辑视频' : '新增视频'" width="520px">
+    <el-dialog v-model="dialogVisible" :title="editing ? '编辑视频' : '新增视频'" width="520px"
+      :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-form label-width="80px">
         <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
         <el-form-item label="视频URL"><el-input v-model="form.video_url" placeholder="R2 或 CDN 地址" /></el-form-item>

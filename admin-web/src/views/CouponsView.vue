@@ -67,7 +67,8 @@ onMounted(load)
       <el-table-column prop="created_at" label="发放时间" width="160" />
     </el-table>
 
-    <el-dialog v-model="dialogVisible" title="手动发放优惠券" width="420px">
+    <el-dialog v-model="dialogVisible" title="手动发放优惠券" width="420px"
+      :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-form label-width="100px">
         <el-form-item label="搜索用户">
           <el-input v-model="searchQuery" placeholder="昵称/OpenID" @input="search" />

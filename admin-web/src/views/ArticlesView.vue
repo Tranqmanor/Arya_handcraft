@@ -217,7 +217,8 @@ onMounted(load)
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" :title="editing ? '编辑文章' : '新增文章'" width="920px" top="4vh">
+    <el-dialog v-model="dialogVisible" :title="editing ? '编辑文章' : '新增文章'" width="920px" top="4vh"
+      :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-form label-width="80px">
         <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
         <el-form-item label="摘要"><el-input v-model="form.summary" /></el-form-item>
