@@ -147,3 +147,40 @@ export function renderMarkdown(md: string): string {
   closeTable()
   return html.join('')
 }
+
+/** 视频段落语法:!video[](URL),需独占一行 */
+const VIDEO_LINE_RE = /^!video\[\]\(([^)]+)\)\s*$/
+
+export interface ContentSegment {
+  type: 'html' | 'video'
+  html?: string
+  url?: string
+}
+
+/**
+ * 将正文切分为「富文本段」与「视频段」交替序列。
+ * 小程序 rich-text 不支持 video 标签,视频须单独用原生组件播放,
+ * 故由详情页按此序列逐段渲染。
+ */
+export function splitVideoSegments(md: string): ContentSegment[] {
+  if (!md) return []
+  const segments: ContentSegment[] = []
+  let buf: string[] = []
+  const flush = () => {
+    if (!buf.length) return
+    const html = renderMarkdown(buf.join('\n'))
+    if (html.trim()) segments.push({ type: 'html', html })
+    buf = []
+  }
+  for (const line of md.split(/\r?\n/)) {
+    const m = line.trim().match(VIDEO_LINE_RE)
+    if (m && m[1]) {
+      flush()
+      segments.push({ type: 'video', url: m[1] })
+    } else {
+      buf.push(line)
+    }
+  }
+  flush()
+  return segments
+}

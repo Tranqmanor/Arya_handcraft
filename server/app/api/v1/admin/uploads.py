@@ -34,3 +34,37 @@ async def admin_upload_image(
 
     return {"url": url}
 
+
+@router.post("/video")
+async def admin_upload_video(
+    file: UploadFile,
+    _admin: AdminUser = Depends(get_current_admin),
+):
+    """上传视频并返回公开访问 URL(供文章正文 !video[]() 语法使用)。
+
+    大文件流式分片上传,不整体载入内存。
+    错误码约定与图片接口一致。
+    """
+    ext = storage.detect_video_ext(file.filename)
+    if ext is None:
+        raise HTTPException(status_code=400, detail="仅支持 mp4/mov/m4v/webm 格式")
+
+    # 先取元信息校验,再流式上传
+    file.file.seek(0, 2)  # EOF
+    size = file.file.tell()
+    file.file.seek(0)
+    try:
+        storage.validate_video_size(size)
+        storage.validate_video_head(file.file.read(16), ext)
+    except ValueError as exc:
+        file.file.seek(0)
+        raise HTTPException(status_code=400, detail=str(exc))
+    file.file.seek(0)
+
+    try:
+        url = storage.upload_video(file.file, ext, size)
+    except storage.UploadError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+
+    return {"url": url}
+

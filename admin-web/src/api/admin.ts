@@ -121,10 +121,22 @@ export function deleteCarouselImage(id: number) {
   return http.delete(`/admin/carousel/${id}`) as Promise<{ detail: string }>
 }
 
-// ===== 图片上传(文章配图/封面;视频为预留能力) =====
+// ===== 图片/视频上传(文章配图、封面、正文视频) =====
 export function uploadImage(file: File) {
   const fd = new FormData()
   fd.append('file', file)
   // axios 遇 FormData 自动使用 multipart 边界,勿手动覆盖 Content-Type
-  return http.post('/admin/uploads/image', fd) as Promise<{ url: string }>
+  return http.post('/admin/uploads/image', fd, { timeout: 60000 }) as Promise<{ url: string }>
+}
+
+/** 上传视频(≤200MB),onProgress 回调上传百分比;超时放宽至 10 分钟 */
+export function uploadVideo(file: File, onProgress?: (percent: number) => void) {
+  const fd = new FormData()
+  fd.append('file', file)
+  return http.post('/admin/uploads/video', fd, {
+    timeout: 600000,
+    onUploadProgress: (e) => {
+      if (onProgress && e.total) onProgress(Math.round((e.loaded / e.total) * 100))
+    },
+  }) as Promise<{ url: string }>
 }

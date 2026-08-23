@@ -9,6 +9,7 @@ import {
   listArticles,
   updateArticle,
   uploadImage,
+  uploadVideo,
   type AdminArticle,
 } from '@/api/admin'
 
@@ -76,10 +77,20 @@ async function remove(a: AdminArticle) {
 const contentInputRef = ref<{ textarea: HTMLTextAreaElement } | null>(null)
 const contentFileRef = ref<HTMLInputElement | null>(null)
 const coverFileRef = ref<HTMLInputElement | null>(null)
+const videoFileRef = ref<HTMLInputElement | null>(null)
 const uploadingImage = ref(false)
 const uploadingCover = ref(false)
+const uploadingVideo = ref(false)
+const videoProgress = ref(0)
 
-const previewHtml = computed(() => marked.parse(form.value.content || '', { async: false }) as string)
+const previewHtml = computed(() => {
+  // 预览不支持内嵌播放,将视频语法替换为占位卡片
+  const md = (form.value.content || '').replace(
+    /!video\[\]\(([^)]+)\)/g,
+    '<div style="padding:18px;text-align:center;border:1px dashed #c9a9a6;border-radius:8px;background:#fff;color:#a98b84;font-size:14px;">🎬 视频片段(保存后在小程序内播放)</div>',
+  )
+  return marked.parse(md, { async: false }) as string
+})
 
 /** 包裹选中文字;无选中则在光标处插入模板 */
 function wrap(before: string, after = '') {
@@ -151,6 +162,24 @@ async function onCoverPicked(e: Event) {
   }
 }
 
+async function onVideoPicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  uploadingVideo.value = true
+  videoProgress.value = 0
+  try {
+    const { url } = await uploadVideo(file, (p) => (videoProgress.value = p))
+    insertText(`\n!video[](${url})\n`)
+    ElMessage.success('视频已插入')
+  } catch (err) {
+    console.error('视频上传失败:', err) // http.ts 已统一弹出后端错误详情
+  } finally {
+    uploadingVideo.value = false
+  }
+}
+
 const categoryOptions = [
   { label: '普通文章', value: 'general' },
   { label: '拍照指南', value: 'photo_guide' },
@@ -218,8 +247,18 @@ onMounted(load)
               <el-button size="small" type="primary" :loading="uploadingImage" @click="contentFileRef?.click()">
                 插入图片
               </el-button>
-              <span class="toolbar-tip">支持图文混排,插入后自动生成 Markdown 图片语法</span>
+              <el-button
+                size="small"
+                type="warning"
+                plain
+                :loading="uploadingVideo"
+                @click="videoFileRef?.click()"
+              >
+                {{ uploadingVideo ? `上传中 ${videoProgress}%` : '插入视频' }}
+              </el-button>
+              <span class="toolbar-tip">图片即传即嵌;视频 ≤200MB,保存后小程序内播放</span>
               <input ref="contentFileRef" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden @change="onContentPicked" />
+              <input ref="videoFileRef" type="file" accept="video/mp4,video/quicktime,video/x-m4v,video/webm" hidden @change="onVideoPicked" />
             </div>
             <div class="split">
               <el-input

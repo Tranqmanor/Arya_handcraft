@@ -30,6 +30,27 @@ _CONTENT_TYPE = {
     "webp": "image/webp",
 }
 
+# ==================== 视频类型 ====================
+
+MAX_VIDEO_SIZE = 200 * 1024 * 1024  # 200MB
+
+# mp4/mov/m4v 同为 ISO-BMFF 容器(第 5-8 字节为 "ftyp");webm 为 EBML 魔数
+_VIDEO_MAGIC = {
+    "mp4": lambda d: len(d) >= 12 and d[4:8] == b"ftyp",
+    "mov": lambda d: len(d) >= 12 and d[4:8] == b"ftyp",
+    "m4v": lambda d: len(d) >= 12 and d[4:8] == b"ftyp",
+    "webm": lambda d: d[:4] == b"\x1a\x45\xdf\xa3",
+}
+
+_CONTENT_TYPE.update(
+    {
+        "mp4": "video/mp4",
+        "mov": "video/quicktime",
+        "m4v": "video/x-m4v",
+        "webm": "video/webm",
+    }
+)
+
 
 class UploadError(Exception):
     """存储侧失败(R2 未配置/写入出错),由路由层转换为 503。"""
@@ -93,6 +114,65 @@ def upload_image(data: bytes, ext: str, settings: Settings | None = None) -> str
             Body=data,
             ContentType=_CONTENT_TYPE[ext],
             CacheControl="public, max-age=31536000, immutable",
+        )
+    except (BotoCoreError, ClientError) as exc:
+        raise UploadError(f"对象存储写入失败: {exc}") from exc
+
+    return f"{s.R2_PUBLIC_BASE_URL.rstrip('/')}/{key}"
+
+
+# ==================== 视频(预留通道正式启用) ====================
+
+
+def detect_video_ext(filename: str | None) -> str | None:
+    """从文件名解析受支持的视频扩展名;不支持返回 None。"""
+    if not filename or "." not in filename:
+        return None
+    ext = filename.rsplit(".", 1)[-1].lower()
+    return ext if ext in _VIDEO_MAGIC else None
+
+
+def validate_video_head(head: bytes, ext: str) -> None:
+    """按文件头 16 字节校验视频格式;不合法抛 ValueError(路由层转 400)。"""
+    if not _VIDEO_MAGIC[ext](head):
+        raise ValueError("文件内容与扩展名不符")
+
+
+def validate_video_size(size: int) -> None:
+    if size <= 0:
+        raise ValueError("文件内容为空")
+    if size > MAX_VIDEO_SIZE:
+        raise ValueError("视频不能超过 200MB")
+
+
+def upload_video(fileobj, ext: str, size: int, settings: Settings | None = None) -> str:
+    """流式上传视频到 R2 并返回公开 URL。
+
+    大文件经 multipart 分片直传,避免整体载入内存;
+    配置缺失或远端失败抛 UploadError。
+    """
+    s = settings or get_settings()
+    if not r2_configured(s):
+        raise UploadError("对象存储未配置(R2_* 环境变量缺失)")
+
+    now = datetime.now(timezone.utc)
+    key = f"uploads/{now:%Y%m}/{uuid.uuid4().hex}.{ext}"
+    client = boto3.client(
+        "s3",
+        endpoint_url=f"https://{s.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+        aws_access_key_id=s.R2_ACCESS_KEY_ID,
+        aws_secret_access_key=s.R2_SECRET_ACCESS_KEY,
+        region_name="auto",
+    )
+    try:
+        client.upload_fileobj(
+            fileobj,
+            s.R2_BUCKET_NAME,
+            key,
+            ExtraArgs={
+                "ContentType": _CONTENT_TYPE[ext],
+                "CacheControl": "public, max-age=31536000, immutable",
+            },
         )
     except (BotoCoreError, ClientError) as exc:
         raise UploadError(f"对象存储写入失败: {exc}") from exc

@@ -6,7 +6,18 @@
       <text class="meta">
         {{ categoryText(article.category) }} · {{ article.view_count }} 阅读
       </text>
-      <rich-text class="content" :nodes="htmlContent" />
+      <template v-for="(seg, i) in contentSegments" :key="i">
+        <rich-text v-if="seg.type === 'html'" class="content" :nodes="seg.html" />
+        <video
+          v-else
+          class="content-video"
+          :src="seg.url"
+          controls
+          object-fit="contain"
+          :show-fullscreen-btn="true"
+          :enable-progress-gesture="false"
+        />
+      </template>
       <button class="contact-btn" @click="contactVisible = true">联系店主 · 定制咨询</button>
       <contact-modal :visible="contactVisible" @close="contactVisible = false" />
     </view>
@@ -19,12 +30,17 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 
 import { getArticle, reportArticleView, type ArticleDetail } from '@/api/article'
-import { renderMarkdown } from '@/utils/markdown'
+import { splitVideoSegments } from '@/utils/markdown'
 import ContactModal from '@/components/contact-modal.vue'
 
 const article = ref<ArticleDetail | null>(null)
 const loading = ref(true)
 const contactVisible = ref(false)
+
+/** 正文分段:富文本段与视频段交替,分别用 rich-text / video 渲染 */
+const contentSegments = computed(() =>
+  article.value ? splitVideoSegments(article.value.content) : [],
+)
 
 onLoad(async (options) => {
   const id = Number(options?.id || 0)
@@ -86,6 +102,15 @@ function categoryText(category: string) {
   color: #5a5350;
   line-height: 1.8;
   word-break: break-word;
+}
+
+/* 正文内嵌视频 */
+.content-video {
+  width: 100%;
+  height: 420rpx;
+  margin: 16rpx 0;
+  border-radius: 16rpx;
+  background: #000;
 }
 
 .contact-btn {
