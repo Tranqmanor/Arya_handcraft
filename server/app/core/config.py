@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     # 管理后台初始密码
     ADMIN_INIT_PASSWORD: str = ""
 
+    # 对象存储(Cloudflare R2,S3 兼容)——文章配图/封面上传用
+    # 任一项留空时上传接口返回 503「对象存储未配置」,不影响其余功能
+    R2_ACCOUNT_ID: str = ""
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_BUCKET_NAME: str = ""
+    R2_PUBLIC_BASE_URL: str = ""  # 形如 https://pub-xxxxxxxx.r2.dev(R2 控制台开启公开访问后获得)
+
 
     @property
     def cors_origin_list(self) -> list[str]:

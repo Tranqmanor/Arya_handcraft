@@ -8,4 +8,6 @@ pydantic-settings>=2.4
 python-jose[cryptography]>=3.3
 httpx>=0.27
 redis>=5.0
+boto3>=1.34            # Cloudflare R2(S3 兼容)对象存储
+python-multipart>=0.0.9  # multipart/form-data 文件上传解析
 pytest>=8.0

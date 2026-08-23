@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { marked } from 'marked'
 
 import {
   createArticle,
   deleteArticle,
   listArticles,
   updateArticle,
+  uploadImage,
   type AdminArticle,
 } from '@/api/admin'
 
@@ -70,6 +72,85 @@ async function remove(a: AdminArticle) {
   await load()
 }
 
+// ===== Markdown 图文编辑器 =====
+const contentInputRef = ref<{ textarea: HTMLTextAreaElement } | null>(null)
+const contentFileRef = ref<HTMLInputElement | null>(null)
+const coverFileRef = ref<HTMLInputElement | null>(null)
+const uploadingImage = ref(false)
+const uploadingCover = ref(false)
+
+const previewHtml = computed(() => marked.parse(form.value.content || '', { async: false }) as string)
+
+/** 包裹选中文字;无选中则在光标处插入模板 */
+function wrap(before: string, after = '') {
+  const el = contentInputRef.value?.textarea
+  const val = form.value.content
+  if (!el) {
+    form.value.content = `${val}${before}文字${after}`
+    return
+  }
+  const start = el.selectionStart ?? val.length
+  const end = el.selectionEnd ?? start
+  const selected = val.slice(start, end) || '文字'
+  form.value.content = val.slice(0, start) + before + selected + after + val.slice(end)
+  nextTick(() => {
+    el.focus()
+    const pos = start + before.length + selected.length + after.length
+    el.setSelectionRange(pos, pos)
+  })
+}
+
+/** 在光标处插入纯文本(如图片 Markdown) */
+function insertText(text: string) {
+  const el = contentInputRef.value?.textarea
+  const val = form.value.content
+  if (!el) {
+    form.value.content = val + text
+    return
+  }
+  const start = el.selectionStart ?? val.length
+  form.value.content = val.slice(0, start) + text + val.slice(start)
+  nextTick(() => {
+    el.focus()
+    const pos = start + text.length
+    el.setSelectionRange(pos, pos)
+  })
+}
+
+async function onContentPicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // 允许再次选择同一文件
+  if (!file) return
+  uploadingImage.value = true
+  try {
+    const { url } = await uploadImage(file)
+    insertText(`\n![图片](${url})\n`)
+    ElMessage.success('图片已插入')
+  } catch (err) {
+    console.error('图片上传失败:', err) // http.ts 已统一弹出后端错误详情
+  } finally {
+    uploadingImage.value = false
+  }
+}
+
+async function onCoverPicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  uploadingCover.value = true
+  try {
+    const { url } = await uploadImage(file)
+    form.value.cover_url = url
+    ElMessage.success('封面上传成功')
+  } catch (err) {
+    console.error('封面上传失败:', err)
+  } finally {
+    uploadingCover.value = false
+  }
+}
+
 const categoryOptions = [
   { label: '普通文章', value: 'general' },
   { label: '拍照指南', value: 'photo_guide' },
@@ -107,7 +188,7 @@ onMounted(load)
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" :title="editing ? '编辑文章' : '新增文章'" width="640px">
+    <el-dialog v-model="dialogVisible" :title="editing ? '编辑文章' : '新增文章'" width="920px" top="4vh">
       <el-form label-width="80px">
         <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
         <el-form-item label="摘要"><el-input v-model="form.summary" /></el-form-item>
@@ -118,9 +199,40 @@ onMounted(load)
         </el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sort_order" :min="0" /></el-form-item>
         <el-form-item label="发布"><el-switch v-model="form.is_published" /></el-form-item>
-        <el-form-item label="封面URL"><el-input v-model="form.cover_url" /></el-form-item>
-        <el-form-item label="正文(Markdown)">
-          <el-input v-model="form.content" type="textarea" :rows="12" />
+        <el-form-item label="封面">
+          <div class="cover-row">
+            <el-input v-model="form.cover_url" placeholder="留空则不显示封面;可直接上传生成地址" />
+            <el-button :loading="uploadingCover" @click="coverFileRef?.click()">上传封面</el-button>
+          </div>
+          <input ref="coverFileRef" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden @change="onCoverPicked" />
+        </el-form-item>
+        <el-form-item label="正文">
+          <div class="editor-wrap">
+            <div class="toolbar">
+              <el-button size="small" @click="wrap('## ', '')">标题</el-button>
+              <el-button size="small" @click="wrap('**', '**')">加粗</el-button>
+              <el-button size="small" @click="wrap('\n- ', '')">列表</el-button>
+              <el-button size="small" @click="wrap('> ', '')">引用</el-button>
+              <el-button size="small" @click="wrap('\n---\n', '')">分隔线</el-button>
+              <el-divider direction="vertical" />
+              <el-button size="small" type="primary" :loading="uploadingImage" @click="contentFileRef?.click()">
+                插入图片
+              </el-button>
+              <span class="toolbar-tip">支持图文混排,插入后自动生成 Markdown 图片语法</span>
+              <input ref="contentFileRef" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden @change="onContentPicked" />
+            </div>
+            <div class="split">
+              <el-input
+                ref="contentInputRef"
+                v-model="form.content"
+                type="textarea"
+                :autosize="{ minRows: 18, maxRows: 18 }"
+                placeholder="在此撰写正文…&#10;&#10;# 一级标题&#10;- 列表项&#10;**加粗** > 引用&#10;点上方「插入图片」可上传图片并自动嵌入"
+              />
+              <div class="preview markdown-body" v-html="previewHtml"></div>
+            </div>
+            <div class="hint">左侧编辑 · 右侧实时预览(渲染效果与小程序端一致)</div>
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -137,5 +249,78 @@ onMounted(load)
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.cover-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+/* ===== 图文编辑器 ===== */
+.editor-wrap {
+  width: 100%;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.toolbar-tip {
+  margin-left: auto;
+  font-size: 12px;
+  color: #b9b1ac;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.preview {
+  height: 414px;
+  padding: 12px 16px;
+  border: 1px solid #e5ded8;
+  border-radius: 6px;
+  background: #faf6f0;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #5a5350;
+  word-break: break-word;
+}
+
+.preview :deep(img) {
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
+  margin: 8px 0;
+}
+
+.preview :deep(h1),
+.preview :deep(h2),
+.preview :deep(h3),
+.preview :deep(h4) {
+  margin: 10px 0 6px;
+  line-height: 1.4;
+}
+
+.preview :deep(blockquote) {
+  margin: 8px 0;
+  padding: 4px 12px;
+  border-left: 4px solid #c9a9a6;
+  background: #fff;
+  color: #7a716d;
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #b9b1ac;
 }
 </style>

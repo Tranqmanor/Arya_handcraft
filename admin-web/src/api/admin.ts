@@ -120,3 +120,11 @@ export function updateCarouselImage(id: number, data: Partial<AdminCarouselImage
 export function deleteCarouselImage(id: number) {
   return http.delete(`/admin/carousel/${id}`) as Promise<{ detail: string }>
 }
+
+// ===== 图片上传(文章配图/封面;视频为预留能力) =====
+export function uploadImage(file: File) {
+  const fd = new FormData()
+  fd.append('file', file)
+  // axios 遇 FormData 自动使用 multipart 边界,勿手动覆盖 Content-Type
+  return http.post('/admin/uploads/image', fd) as Promise<{ url: string }>
+}
