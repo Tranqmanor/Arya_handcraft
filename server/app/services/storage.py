@@ -88,18 +88,23 @@ def r2_configured(settings: Settings | None = None) -> bool:
     )
 
 
-def upload_image(data: bytes, ext: str, settings: Settings | None = None) -> str:
+def upload_image(
+    data: bytes,
+    ext: str,
+    settings: Settings | None = None,
+    prefix: str = "uploads",
+) -> str:
     """上传图片到 R2 并返回公开访问 URL;配置缺失或远端失败抛 UploadError。
 
     存储键按年月分目录 + uuid,文件名不可预测且天然去重;
-    设置一年不可变缓存(CDN 友好)。
+    设置一年不可变缓存(CDN 友好)。prefix 用于区分来源(官方/用户)。
     """
     s = settings or get_settings()
     if not r2_configured(s):
         raise UploadError("对象存储未配置(R2_* 环境变量缺失)")
 
     now = datetime.now(timezone.utc)
-    key = f"uploads/{now:%Y%m}/{uuid.uuid4().hex}.{ext}"
+    key = f"{prefix}/{now:%Y%m}/{uuid.uuid4().hex}.{ext}"
     client = boto3.client(
         "s3",
         endpoint_url=f"https://{s.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",

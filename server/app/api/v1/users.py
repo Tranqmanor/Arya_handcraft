@@ -50,6 +50,8 @@ def update_me(
         current_user.avatar_url = payload.avatar_url
     if payload.phone is not None:
         current_user.phone = payload.phone
+    if payload.cat_name is not None:
+        current_user.cat_name = payload.cat_name
     db.commit()
     db.refresh(current_user)
     return current_user

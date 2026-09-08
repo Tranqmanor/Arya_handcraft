@@ -20,3 +20,4 @@ class UserUpdate(BaseModel):
     nickname: str | None = None
     avatar_url: str | None = None
     phone: str | None = None
+    cat_name: str | None = None
