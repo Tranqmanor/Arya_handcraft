@@ -17,68 +17,178 @@
       </view>
     </view>
 
-    <!-- 竖图轮播(卡片式:四周留边、四角圆角、图下展示标题与描述) -->
-    <view v-else class="carousel-container">
-      <swiper :vertical="true" :circular="false" :indicator-dots="carouselImages.length > 1"
-        indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff" :interval="3000" :duration="500"
-        class="full-swiper" @change="onSwiperChange">
-        <swiper-item v-for="item in carouselImages" :key="item.id">
-          <view class="slide" @tap="handleImageTap">
-            <image :src="item.image_url" class="carousel-image" mode="aspectFill" />
-            <view v-if="item.title || item.description" class="slide-overlay">
-              <text class="slide-title">{{ item.title }}</text>
-              <text v-if="item.description" class="slide-desc">{{ item.description }}</text>
-            </view>
-          </view>
-        </swiper-item>
-        <!-- 空状态 -->
-        <swiper-item v-if="carouselImages.length === 0">
-          <view class="empty-state">
-            <text class="empty-text">暂无轮播图</text>
-          </view>
+    <!-- 主页 -->
+    <view v-else class="home">
+      <!-- ① 横图轮播 -->
+      <swiper
+        class="banner-swiper"
+        :circular="carouselImages.length > 1"
+        :autoplay="carouselImages.length > 1"
+        :indicator-dots="carouselImages.length > 1"
+        indicator-color="rgba(255,255,255,0.5)"
+        indicator-active-color="#fff"
+        :interval="3500"
+        :duration="500"
+      >
+        <swiper-item v-for="item in carouselImages" :key="item.id" @click="previewCarousel(item.image_url)">
+          <image :src="item.image_url" class="banner-image" mode="aspectFill" />
         </swiper-item>
       </swiper>
+
+      <!-- ② 六宫格导航 -->
+      <view class="nav-grid">
+        <view class="nav-item" @click="go('/pages/video/video')">
+          <view class="nav-icon" style="background: linear-gradient(160deg, #f6e8e6, #ecd6d3)"><text>🎬</text></view>
+          <text class="nav-label">成品展示</text>
+        </view>
+        <view class="nav-item" @click="go('/pages/article/article?category=photo_guide')">
+          <view class="nav-icon" style="background: linear-gradient(160deg, #e8f0f1, #d3e2e5)"><text>📷</text></view>
+          <text class="nav-label">供图tips</text>
+        </view>
+        <view class="nav-item" @click="go('/pages/orders/orders')">
+          <view class="nav-icon" style="background: linear-gradient(160deg, #fdf3e3, #f5e3c3)"><text>📦</text></view>
+          <text class="nav-label">我的订单</text>
+        </view>
+        <view class="nav-item">
+          <button class="nav-icon contact-icon" open-type="contact" style="background: linear-gradient(160deg, #e9f0e7, #d5e3d2)">
+            <text>💬</text>
+          </button>
+          <text class="nav-label">官方客服</text>
+        </view>
+        <view class="nav-item" @click="go('/pages/article/article?category=about_wool')">
+          <view class="nav-icon" style="background: linear-gradient(160deg, #f0eaf6, #ddd2ec)"><text>🧶</text></view>
+          <text class="nav-label">关于羊毛毡</text>
+        </view>
+        <view class="nav-item" @click="go('/pages/article/article?category=about_arya')">
+          <view class="nav-icon" style="background: linear-gradient(160deg, #fdeeea, #f6d9d2)"><text>🐱</text></view>
+          <text class="nav-label">关于Arya</text>
+        </view>
+      </view>
+
+      <!-- ③ 横版宣传图(后台可配置) -->
+      <view class="promo" @click="previewPromo">
+        <image v-if="promoImage" :src="promoImage" class="promo-image" mode="aspectFill" />
+        <view v-else class="promo-placeholder">
+          <text class="promo-title">Arya Handcraft</text>
+          <text class="promo-sub">一针一戳 · 只为遇见你</text>
+        </view>
+      </view>
+
+      <!-- ④ 成品套图瀑布流(按订单) -->
+      <view v-if="works.length" class="works-section">
+        <view class="section-head">
+          <text class="section-title">成品欣赏</text>
+          <text class="section-sub">每一只都是独一无二</text>
+        </view>
+        <view class="works-flow">
+          <view class="works-col">
+            <view v-for="w in worksLeft" :key="'L' + w.id" class="work-card" :style="{ height: w.height }" @click="previewWork(w.cover_image_url)">
+              <image :src="w.cover_image_url" class="work-image" mode="aspectFill" />
+              <view class="work-info">
+                <text class="work-name">{{ w.cat_name }}</text>
+              </view>
+            </view>
+          </view>
+          <view class="works-col">
+            <view v-for="w in worksRight" :key="'R' + w.id" class="work-card" :style="{ height: w.height }" @click="previewWork(w.cover_image_url)">
+              <image :src="w.cover_image_url" class="work-image" mode="aspectFill" />
+              <view class="work-info">
+                <text class="work-name">{{ w.cat_name }}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <app-tabbar current="home" />
     </view>
   </view>
 </template>
 
-<script setup
-  lang="ts">
-    import { ref, onMounted } from 'vue'
-    import { getCarouselImages } from '@/api/carousel'
-    import type { CarouselImageItem } from '@/api/carousel'
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 
-    const showWelcome = ref(true)
-    const carouselImages = ref<CarouselImageItem[]>([])
-    const currentIndex = ref(0)
+import { getCarouselImages, type CarouselImageItem } from '@/api/carousel'
+import { getHomeSettings, getWorks, type WorkItem } from '@/api/order'
+import AppTabbar from '@/components/app-tabbar.vue'
 
-    let welcomeTimer: any = null
+// 欢迎页仅首次展示(模块级标记,redirectTo 重建实例也不重复)
+let welcomed = false
+const showWelcome = ref(!welcomed)
+if (!welcomed) {
+  setTimeout(() => {
+    showWelcome.value = false
+    welcomed = true
+  }, 2000)
+}
 
-    onMounted(async () => {
-      // 加载轮播图数据
-      try {
-        carouselImages.value = await getCarouselImages()
-      } catch (error) {
-        console.error('加载轮播图失败:', error)
-      }
+const carouselImages = ref<CarouselImageItem[]>([])
+const promoImage = ref('')
+const works = ref<(WorkItem & { id: number; height: string })[]>([])
 
-      // 欢迎界面停留 2 秒后进入轮播
-      welcomeTimer = setTimeout(() => {
-        showWelcome.value = false
-      }, 2000)
-    })
+onLoad((options) => {
+  // 分享卡片进入时记录推荐人(下单时归因)
+  const referrer = (options as { referrer?: string } | undefined)?.referrer
+  if (referrer) uni.setStorageSync('referrer_id', Number(referrer))
+})
 
-    function onSwiperChange(e: any) {
-      currentIndex.value = e.detail.current
-    }
+onShow(() => {
+  loadCarousel()
+  loadWorks()
+  loadPromo()
+})
 
-    function handleImageTap() {
-      // 可在此扩展点击事件，例如全屏预览
-      uni.previewImage({
-        urls: carouselImages.value.map(img => img.image_url),
-        current: carouselImages.value[currentIndex.value].image_url,
-      })
-    }
+async function loadCarousel() {
+  try {
+    carouselImages.value = await getCarouselImages()
+  } catch {
+    carouselImages.value = []
+  }
+}
+
+async function loadPromo() {
+  try {
+    const settings = await getHomeSettings()
+    promoImage.value = settings.promo_image_url
+  } catch {
+    promoImage.value = ''
+  }
+}
+
+async function loadWorks() {
+  try {
+    const list = await getWorks()
+    // 基于 id+名字长度的稳定伪随机高度:刷新不跳动,呈现"随机大小分布"
+    const heights = ['440rpx', '540rpx', '360rpx']
+    works.value = list.map((w, idx) => ({
+      ...w,
+      id: idx,
+      height: heights[(w.cat_name.length + idx) % 3],
+    }))
+  } catch {
+    works.value = []
+  }
+}
+
+const worksLeft = computed(() => works.value.filter((_, i) => i % 2 === 0))
+const worksRight = computed(() => works.value.filter((_, i) => i % 2 === 1))
+
+function go(url: string) {
+  uni.navigateTo({ url })
+}
+
+function previewCarousel(url: string) {
+  uni.previewImage({ urls: carouselImages.value.map((c) => c.image_url), current: url })
+}
+
+function previewPromo() {
+  if (promoImage.value) uni.previewImage({ urls: [promoImage.value] })
+}
+
+function previewWork(url: string) {
+  uni.previewImage({ urls: [url] })
+}
 </script>
 
 <style scoped
@@ -215,67 +325,175 @@
       }
     }
 
-    /* 轮播图容器:四周留边,露出品牌渐变底色 */
-    .carousel-container {
-      width: 100%;
-      height: 100vh;
-      box-sizing: border-box;
-      padding: 24rpx;
-      background: linear-gradient(180deg, #faf6f0 0%, #eadcd9 100%);
+    /* 主页容器 */
+    .home {
+      padding: 24rpx 24rpx 0;
+      padding-bottom: 240rpx; /* 给 tabbar 留出空间 */
     }
 
-    /* 全屏轮播 */
-    .full-swiper {
+    /* ① 横图轮播 */
+    .banner-swiper {
       width: 100%;
-      height: 100%;
-    }
-
-    /* 单张轮播卡片:四角圆角 + 轻阴影 */
-    .slide {
-      position: relative;
-      width: 100%;
-      height: 100%;
+      height: 380rpx;
+      border-radius: 24rpx;
       overflow: hidden;
-      border-radius: 28rpx;
-      background: #fff;
       box-shadow: 0 8rpx 24rpx rgba(90, 83, 80, 0.12);
     }
 
-    /* 轮播图图片:铺满整张圆角卡片 */
-    .carousel-image {
-      display: block;
+    .banner-image {
       width: 100%;
       height: 100%;
+      display: block;
     }
 
-    /* 文字叠加层:压在图片底部,渐变暗化保证可读性,靠左对齐 */
-    .slide-overlay {
+    /* ② 六宫格导航 */
+    .nav-grid {
+      margin-top: 32rpx;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28rpx 12rpx;
+      background: #fff;
+      border-radius: 24rpx;
+      padding: 32rpx 16rpx;
+      box-shadow: 0 4rpx 16rpx rgba(90, 83, 80, 0.06);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12rpx;
+    }
+
+    .nav-icon {
+      width: 96rpx;
+      height: 96rpx;
+      border-radius: 28rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      line-height: 1;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav-icon::after {
+      border: none;
+    }
+
+    .nav-icon text {
+      font-size: 44rpx;
+    }
+
+    .nav-label {
+      font-size: 24rpx;
+      color: #5a5350;
+    }
+
+    /* ③ 横版宣传图 */
+    .promo {
+      margin-top: 32rpx;
+      border-radius: 24rpx;
+      overflow: hidden;
+      box-shadow: 0 4rpx 16rpx rgba(90, 83, 80, 0.06);
+    }
+
+    .promo-image {
+      width: 100%;
+      height: 240rpx;
+      display: block;
+    }
+
+    .promo-placeholder {
+      height: 240rpx;
+      background: linear-gradient(135deg, #eadcd9 0%, #d9c7a5 60%, #c9a9a6 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12rpx;
+    }
+
+    .promo-title {
+      font-size: 40rpx;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 4rpx;
+    }
+
+    .promo-sub {
+      font-size: 24rpx;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 6rpx;
+    }
+
+    /* ④ 作品瀑布流 */
+    .works-section {
+      margin-top: 40rpx;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      gap: 16rpx;
+      margin-bottom: 24rpx;
+      padding: 0 4rpx;
+    }
+
+    .section-title {
+      font-size: 34rpx;
+      font-weight: 700;
+      color: $arya-ink;
+    }
+
+    .section-sub {
+      font-size: 22rpx;
+      color: $arya-dove;
+    }
+
+    .works-flow {
+      display: flex;
+      gap: 20rpx;
+    }
+
+    .works-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20rpx;
+    }
+
+    .work-card {
+      border-radius: 20rpx;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 4rpx 16rpx rgba(90, 83, 80, 0.08);
+      position: relative;
+    }
+
+    .work-image {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .work-info {
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
-      padding: 72rpx 24rpx 28rpx;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 100%);
+      padding: 40rpx 20rpx 16rpx;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.45) 100%);
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      text-align: left;
-      pointer-events: none; /* 点击穿透到图片(预览大图) */
+      justify-content: flex-start;
     }
 
-    .slide-title {
-      font-size: 30rpx;
-      font-weight: 700;
+    .work-name {
+      font-size: 26rpx;
       color: #fff;
-      letter-spacing: 2rpx;
-      text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.35);
-    }
-
-    .slide-desc {
-      margin-top: 10rpx;
-      font-size: 24rpx;
-      line-height: 1.6;
-      color: rgba(255, 255, 255, 0.88);
+      font-weight: 600;
+      text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
     }
 
     /* 空状态(卡片式圆角) */

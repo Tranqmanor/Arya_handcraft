@@ -14,6 +14,7 @@ export interface UserInfo {
   nickname: string
   avatar_url: string
   phone: string | null
+  cat_name: string
   created_at: string
   updated_at: string
 }
@@ -36,7 +37,7 @@ export function getMe() {
   return http.get<UserInfo>('/users/me')
 }
 
-export function updateMe(data: Partial<Pick<UserInfo, 'nickname' | 'avatar_url' | 'phone'>>) {
+export function updateMe(data: Partial<Pick<UserInfo, 'nickname' | 'avatar_url' | 'phone' | 'cat_name'>>) {
   return http.put<UserInfo>('/users/me', data)
 }
 

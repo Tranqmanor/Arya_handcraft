@@ -1,5 +1,7 @@
 const BASE_URL: string = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api/v1'
 
+export { BASE_URL }
+
 interface RequestOptions {
   url: string
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -139,6 +141,8 @@ export const http = {
     request<T>({ url, method: 'POST', data, auth }),
   put: <T>(url: string, data?: Record<string, unknown>, auth = true) =>
     request<T>({ url, method: 'PUT', data, auth }),
+  delete: <T>(url: string, auth = true) =>
+    request<T>({ url, method: 'DELETE', auth }),
 }
 
 export default request

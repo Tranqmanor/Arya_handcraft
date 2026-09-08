@@ -13,21 +13,9 @@
       }
     },
     {
-      "path": "pages/video/video",
+      "path": "pages/order-create/order-create",
       "style": {
-        "navigationBarTitleText": "成品展示vlog"
-      }
-    },
-    {
-      "path": "pages/article/article",
-      "style": {
-        "navigationBarTitleText": "关于毛毡猫咪"
-      }
-    },
-    {
-      "path": "pages/arya/arya",
-      "style": {
-        "navigationBarTitleText": "Arya智能小助手"
+        "navigationBarTitleText": "立即下单"
       }
     },
     {
@@ -37,9 +25,51 @@
       }
     },
     {
+      "path": "pages/video/video",
+      "style": {
+        "navigationBarTitleText": "成品展示vlog"
+      }
+    },
+    {
+      "path": "pages/article/article",
+      "style": {
+        "navigationBarTitleText": "文章"
+      }
+    },
+    {
       "path": "pages/article/detail",
       "style": {
         "navigationBarTitleText": "文章详情"
+      }
+    },
+    {
+      "path": "pages/orders/orders",
+      "style": {
+        "navigationBarTitleText": "我的订单"
+      }
+    },
+    {
+      "path": "pages/order-detail/order-detail",
+      "style": {
+        "navigationBarTitleText": "订单详情"
+      }
+    },
+    {
+      "path": "pages/addresses/addresses",
+      "style": {
+        "navigationBarTitleText": "我的地址"
+      }
+    },
+    {
+      "path": "pages/profile-edit/profile-edit",
+      "style": {
+        "navigationBarTitleText": "编辑资料"
+      }
+    },
+    {
+      "path": "pages/referral/referral",
+      "style": {
+        "navigationBarTitleText": "推荐给他人"
       }
     }
   ],
@@ -48,43 +78,5 @@
     "navigationBarTitleText": "Arya手作",
     "navigationBarBackgroundColor": "#FAF6F0",
     "backgroundColor": "#FAF6F0"
-  },
-  "tabBar": {
-    "color": "#B9B1AC",
-    "selectedColor": "#C9A9A6",
-    "backgroundColor": "#FFFFFF",
-    "borderStyle": "white",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "static/tab-home.png",
-        "selectedIconPath": "static/tab-home-active.png"
-      },
-      {
-        "pagePath": "pages/video/video",
-        "text": "视频",
-        "iconPath": "static/tab-video.png",
-        "selectedIconPath": "static/tab-video-active.png"
-      },
-      {
-        "pagePath": "pages/article/article",
-        "text": "文章",
-        "iconPath": "static/tab-article.png",
-        "selectedIconPath": "static/tab-article-active.png"
-      },
-      {
-        "pagePath": "pages/arya/arya",
-        "text": "Arya",
-        "iconPath": "static/tab-arya.png",
-        "selectedIconPath": "static/tab-arya-active.png"
-      },
-      {
-        "pagePath": "pages/mine/mine",
-        "text": "我的",
-        "iconPath": "static/tab-mine.png",
-        "selectedIconPath": "static/tab-mine-active.png"
-      }
-    ]
   }
 }

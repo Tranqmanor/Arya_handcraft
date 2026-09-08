@@ -22,12 +22,18 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 
 import { getArticles, type ArticleListItem } from '@/api/article'
 
 const articles = ref<ArticleListItem[]>([])
 const loading = ref(true)
+const filterCategory = ref('')
+
+// 六宫格带 category 参数进入时仅展示对应分类
+onLoad((options) => {
+  filterCategory.value = (options as { category?: string } | undefined)?.category || ''
+})
 
 onShow(async () => {
   await loadArticles()
@@ -36,7 +42,10 @@ onShow(async () => {
 async function loadArticles() {
   loading.value = true
   try {
-    articles.value = await getArticles()
+    const all = await getArticles()
+    articles.value = filterCategory.value
+      ? all.filter((a) => a.category === filterCategory.value)
+      : all
   } catch {
     articles.value = []
   } finally {
@@ -49,7 +58,12 @@ function openArticle(id: number) {
 }
 
 function categoryText(category: string) {
-  const map: Record<string, string> = { photo_guide: '定制指南', general: '文章' }
+  const map: Record<string, string> = {
+    photo_guide: '拍照指南',
+    general: '文章',
+    about_wool: '关于羊毛毡',
+    about_arya: '关于Arya',
+  }
   return map[category] || '文章'
 }
 
