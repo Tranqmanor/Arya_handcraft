@@ -138,7 +138,7 @@ async function handleLogout() {
   min-height: 100vh;
   padding: 32rpx;
   background: #faf6f0;
-  padding-bottom: 240rpx; /* tabbar 空间 */
+  padding-bottom: 360rpx; /* 预留凸起 tabbar 空间 */
 }
 
 .bottom-space {

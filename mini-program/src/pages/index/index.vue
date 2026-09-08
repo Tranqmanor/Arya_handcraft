@@ -328,7 +328,7 @@ function previewWork(url: string) {
     /* 主页容器 */
     .home {
       padding: 24rpx 24rpx 0;
-      padding-bottom: 240rpx; /* 给 tabbar 留出空间 */
+      padding-bottom: 360rpx; /* 预留凸起 tabbar 空间 */
     }
 
     /* ① 横图轮播 */

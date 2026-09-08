@@ -241,6 +241,7 @@ async function submit() {
 .create-page {
   min-height: 100vh;
   padding: 24rpx;
+  padding-bottom: 360rpx; /* 预留凸起 tabbar 空间 */
   background: #faf6f0;
 }
 
