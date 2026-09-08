@@ -1,25 +1,39 @@
 <template>
   <div class="tab-page">
-    <div class="page-title">🛠️ 管理</div>
-    <div class="menu-list">
-      <div class="menu-item" @click="$emit('nav', 'orders')">
-        <span class="menu-icon">📦</span><span class="menu-label">订单信息</span><span class="arrow">›</span>
+    <!-- 订单管理内页 -->
+    <OrdersPage v-if="page === 'orders'" @back="page = 'tabs'" />
+
+    <!-- 管理菜单 -->
+    <template v-else>
+      <div class="page-title">🛠️ 管理</div>
+      <div class="menu-list">
+        <div class="menu-item" @click="page = 'orders'">
+          <span class="menu-icon">📦</span><span class="menu-label">订单信息</span><span class="arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <span class="menu-icon">📝</span><span class="menu-label">文章管理</span><span class="arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <span class="menu-icon">🖼️</span><span class="menu-label">图片管理</span><span class="arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <span class="menu-icon">🎬</span><span class="menu-label">视频管理</span><span class="arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <span class="menu-icon">🎟️</span><span class="menu-label">优惠券管理</span><span class="arrow">›</span>
+        </div>
       </div>
-      <div class="menu-item">
-        <span class="menu-icon">📝</span><span class="menu-label">文章管理</span><span class="arrow">›</span>
-      </div>
-      <div class="menu-item">
-        <span class="menu-icon">🖼️</span><span class="menu-label">图片管理</span><span class="arrow">›</span>
-      </div>
-      <div class="menu-item">
-        <span class="menu-icon">🎬</span><span class="menu-label">视频管理</span><span class="arrow">›</span>
-      </div>
-      <div class="menu-item">
-        <span class="menu-icon">🎟️</span><span class="menu-label">优惠券管理</span><span class="arrow">›</span>
-      </div>
-    </div>
+    </template>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+import OrdersPage from '@/views/mobile/OrdersPage.vue'
+
+const page = ref<'tabs' | 'orders'>('tabs')
+</script>
 
 <style scoped>
 .tab-page {

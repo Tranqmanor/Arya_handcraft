@@ -6,6 +6,9 @@ import ManageTab from '@/views/mobile/ManageTab.vue'
 import StatsTab from '@/views/mobile/StatsTab.vue'
 import MineTab from '@/views/mobile/MineTab.vue'
 import Welcome from '@/views/Welcome.vue'
+import { useAppStore } from '@/stores/app'
+
+const store = useAppStore()
 
 const TABS = [
   { key: 'home', label: '首页', icon: '🏠', component: HomeTab },
@@ -14,21 +17,20 @@ const TABS = [
   { key: 'mine', label: '我的', icon: '👤', component: MineTab },
 ]
 
-const activeTab = ref('home')
 const showWelcome = ref(true)
 
-const welcomed = ref(false)
-
 function switchTab(key: string) {
-  activeTab.value = key
+  store.activeTab = key as typeof store.activeTab
+  store.page = 'tabs'
 }
 
-const currentComponent = computed(() => TABS.find((t) => t.key === activeTab.value)?.component || HomeTab)
+const currentComponent = computed(
+  () => TABS.find((t) => t.key === store.activeTab)?.component || HomeTab,
+)
 
 // 欢迎页展示 2 秒后进入主界面
 setTimeout(() => {
   showWelcome.value = false
-  welcomed.value = true
 }, 2200)
 </script>
 
@@ -53,7 +55,7 @@ setTimeout(() => {
         v-for="t in TABS"
         :key="t.key"
         class="tab-item"
-        :class="{ active: activeTab === t.key }"
+        :class="{ active: store.activeTab === t.key }"
         @click="switchTab(t.key)"
       >
         <span class="tab-icon">{{ t.icon }}</span>
