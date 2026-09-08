@@ -27,6 +27,8 @@ onMounted(loadStats)
       <div class="logo">Arya_handcraft</div>
       <el-menu :default-active="$route.path" router>
         <el-menu-item index="/dashboard">概览</el-menu-item>
+        <el-menu-item index="/dashboard/orders">订单管理</el-menu-item>
+        <el-menu-item index="/dashboard/finance">账目统计</el-menu-item>
         <el-menu-item index="/dashboard/videos">视频管理</el-menu-item>
         <el-menu-item index="/dashboard/articles">文章管理</el-menu-item>
         <el-menu-item index="/dashboard/coupons">优惠券</el-menu-item>

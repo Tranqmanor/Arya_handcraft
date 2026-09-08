@@ -42,6 +42,16 @@ const router = createRouter({
           name: 'carousel',
           component: () => import('@/views/CarouselView.vue'),
         },
+        {
+          path: 'orders',
+          name: 'orders',
+          component: () => import('@/views/OrdersView.vue'),
+        },
+        {
+          path: 'finance',
+          name: 'finance',
+          component: () => import('@/views/FinanceView.vue'),
+        },
       ],
     },
   ],

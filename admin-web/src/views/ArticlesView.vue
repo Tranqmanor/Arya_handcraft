@@ -50,6 +50,16 @@ function openEdit(a: AdminArticle) {
   dialogVisible.value = true
 }
 
+function categoryText(category: string) {
+  const map: Record<string, string> = {
+    general: '普通',
+    photo_guide: '拍照指南',
+    about_wool: '关于羊毛毡',
+    about_arya: '关于Arya',
+  }
+  return map[category] || category
+}
+
 async function save() {
   if (!form.value.title || !form.value.content) {
     ElMessage.warning('请填写标题和正文')
@@ -183,6 +193,8 @@ async function onVideoPicked(e: Event) {
 const categoryOptions = [
   { label: '普通文章', value: 'general' },
   { label: '拍照指南', value: 'photo_guide' },
+  { label: '关于羊毛毡', value: 'about_wool' },
+  { label: '关于Arya', value: 'about_arya' },
 ]
 
 onMounted(load)
@@ -197,9 +209,9 @@ onMounted(load)
     <el-table :data="articles" border>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="title" label="标题" min-width="180" />
-      <el-table-column label="分类" width="100">
+      <el-table-column label="分类" width="110">
         <template #default="{ row }">
-          <el-tag>{{ row.category === 'photo_guide' ? '拍照指南' : '普通' }}</el-tag>
+          <el-tag>{{ categoryText(row.category) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="view_count" label="阅读" width="80" />

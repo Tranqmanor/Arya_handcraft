@@ -5,14 +5,22 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   createCarouselImage,
   deleteCarouselImage,
+  getHomeSettings,
   listCarouselImages,
   updateCarouselImage,
+  updateHomeSettings,
+  uploadImage,
   type AdminCarouselImage,
 } from '@/api/admin'
 
 const carouselImages = ref<AdminCarouselImage[]>([])
 const dialogVisible = ref(false)
 const editing = ref<AdminCarouselImage | null>(null)
+
+// 首页宣传图配置
+const promoImage = ref('')
+const promoUploading = ref(false)
+const promoFileRef = ref<HTMLInputElement | null>(null)
 const form = ref({
   image_url: '',
   title: '',
@@ -66,7 +74,41 @@ async function remove(item: AdminCarouselImage) {
   await load()
 }
 
-onMounted(load)
+async function loadPromo() {
+  try {
+    const settings = await getHomeSettings()
+    promoImage.value = settings.promo_image_url
+  } catch { /* ignore */ }
+}
+
+async function onPromoPicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  promoUploading.value = true
+  try {
+    const { url } = await uploadImage(file)
+    await updateHomeSettings(url)
+    promoImage.value = url
+    ElMessage.success('宣传图已更新')
+  } catch (err) {
+    console.error('宣传图上传失败:', err)
+  } finally {
+    promoUploading.value = false
+  }
+}
+
+async function clearPromo() {
+  await updateHomeSettings('')
+  promoImage.value = ''
+  ElMessage.success('已清除,小程序将显示默认占位')
+}
+
+onMounted(() => {
+  load()
+  loadPromo()
+})
 </script>
 
 <template>
@@ -75,6 +117,25 @@ onMounted(load)
       <h3>轮播图管理</h3>
       <el-button type="primary" @click="openCreate">新增轮播图</el-button>
     </div>
+
+    <!-- 首页宣传图(六宫格下方横幅) -->
+    <el-card shadow="never" class="promo-card">
+      <template #header>首页宣传图(六宫格下方的横版大图)</template>
+      <div class="promo-row">
+        <div class="promo-preview">
+          <img v-if="promoImage" :src="promoImage" alt="" />
+          <div v-else class="promo-empty">未设置(小程序显示默认品牌横幅)</div>
+        </div>
+        <div class="promo-actions">
+          <el-button type="primary" :loading="promoUploading" @click="promoFileRef?.click()">
+            {{ promoImage ? '更换宣传图' : '上传宣传图' }}
+          </el-button>
+          <el-button v-if="promoImage" plain @click="clearPromo">清除</el-button>
+          <div class="promo-tip">建议横版,比例约 3:1,宽度 ≥ 750px</div>
+        </div>
+      </div>
+      <input ref="promoFileRef" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden @change="onPromoPicked" />
+    </el-card>
     <el-table :data="carouselImages" border>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column label="图片" width="120">
@@ -141,5 +202,53 @@ onMounted(load)
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.promo-card {
+  margin-bottom: 16px;
+}
+
+.promo-row {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.promo-preview {
+  width: 320px;
+  height: 110px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #faf6f0;
+  border: 1px solid #f0ebe6;
+  flex-shrink: 0;
+}
+
+.promo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.promo-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b9b1ac;
+  font-size: 13px;
+}
+
+.promo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.promo-tip {
+  color: #b9b1ac;
+  font-size: 12px;
 }
 </style>
