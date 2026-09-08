@@ -16,14 +16,22 @@
         class="video-card"
         :style="{ height: cardHeight }"
       >
-        <!-- 封面/预览 -->
+        <!-- 封面(仅以后台管理的 cover_url 为准) -->
         <image
-          v-if="!playingId || playingId !== v.id"
+          v-if="(!playingId || playingId !== v.id) && v.cover_url"
           class="cover"
-          :src="v.cover_url || '/static/tab-video.png'"
+          :src="v.cover_url"
           mode="aspectFill"
           @tap="playVideo(v)"
         />
+        <!-- 无封面占位(点击仍可播放) -->
+        <view
+          v-else-if="!playingId || playingId !== v.id"
+          class="cover cover-placeholder"
+          @tap="playVideo(v)"
+        >
+          <text class="cover-title">{{ v.title }}</text>
+        </view>
         <!-- 播放器 -->
         <video
           v-else
@@ -150,6 +158,21 @@ onShareAppMessage(() => ({
   width: 100%;
   height: 100%;
   display: block;
+}
+
+/* 未设置封面时的品牌色占位块 */
+.cover-placeholder {
+  background: linear-gradient(160deg, #eadcd9 0%, #c9a9a6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-title {
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
 }
 .player {
   width: 100%;
