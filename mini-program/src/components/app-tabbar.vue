@@ -3,7 +3,7 @@
     <view class="tabbar-inner">
       <!-- 首页 -->
       <view class="tab-item" :class="{ active: current === 'home' }" @click="go('/pages/index/index')">
-        <van-icon :name="current === 'home' ? 'shop' : 'shop-o'" :color="current === 'home' ? '#a98b84' : '#b9b1ac'" size="22px" />
+        <image class="tab-icon-img" src="/static/home.png" mode="aspectFit" :class="{ dim: current !== 'home' }" />
         <text class="tab-label">首页</text>
       </view>
 
@@ -17,7 +17,7 @@
 
       <!-- 我的 -->
       <view class="tab-item" :class="{ active: current === 'mine' }" @click="go('/pages/mine/mine')">
-        <van-icon :name="current === 'mine' ? 'user' : 'user-o'" :color="current === 'mine' ? '#a98b84' : '#b9b1ac'" size="22px" />
+        <image class="tab-icon-img" src="/static/mine.png" mode="aspectFit" :class="{ dim: current !== 'mine' }" />
         <text class="tab-label">我的</text>
       </view>
     </view>
@@ -63,6 +63,16 @@ function go(url: string) {
 
   &.center {
     flex: 2; /* 1:2:1 宽度比 */
+  }
+}
+
+.tab-icon-img {
+  width: 48rpx;
+  height: 48rpx;
+
+  /* 未选中态淡化,选中态全显(图片本身含品牌色,用透明度区分状态) */
+  &.dim {
+    opacity: 0.5;
   }
 }
 
