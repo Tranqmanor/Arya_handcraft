@@ -2,22 +2,22 @@
   <view class="tabbar">
     <view class="tabbar-inner">
       <!-- 首页 -->
-      <view class="tab-item" :class="{ active: current === 'home' }" @click="go('/pages/index/index', 'home')">
-        <text class="tab-icon">🏠</text>
+      <view class="tab-item" :class="{ active: current === 'home' }" @click="go('/pages/index/index')">
+        <van-icon :name="current === 'home' ? 'shop' : 'shop-o'" :color="current === 'home' ? '#a98b84' : '#b9b1ac'" size="22px" />
         <text class="tab-label">首页</text>
       </view>
 
-      <!-- 立即下单(中央凸起) -->
-      <view class="tab-item center" @click="go('/pages/order-create/order-create', 'create')">
+      <!-- 立即下单(中央凸起,图片图标) -->
+      <view class="tab-item center" @click="go('/pages/order-create/order-create')">
         <view class="cta-btn">
-          <text class="cta-icon">🧶</text>
+          <image class="cta-icon-img" src="/static/shop.png" mode="aspectFit" />
           <text class="cta-label">立即下单</text>
         </view>
       </view>
 
       <!-- 我的 -->
-      <view class="tab-item" :class="{ active: current === 'mine' }" @click="go('/pages/mine/mine', 'mine')">
-        <text class="tab-icon">👤</text>
+      <view class="tab-item" :class="{ active: current === 'mine' }" @click="go('/pages/mine/mine')">
+        <van-icon :name="current === 'mine' ? 'user' : 'user-o'" :color="current === 'mine' ? '#a98b84' : '#b9b1ac'" size="22px" />
         <text class="tab-label">我的</text>
       </view>
     </view>
@@ -27,7 +27,7 @@
 <script setup lang="ts">
 defineProps<{ current: 'home' | 'create' | 'mine' }>()
 
-function go(url: string, _key: string) {
+function go(url: string) {
   // tab 级切换用 redirectTo,避免页面栈膨胀
   uni.redirectTo({ url })
 }
@@ -66,11 +66,6 @@ function go(url: string, _key: string) {
   }
 }
 
-.tab-icon {
-  font-size: 40rpx;
-  line-height: 1.2;
-}
-
 .tab-label {
   font-size: 22rpx;
   color: #b9b1ac;
@@ -98,9 +93,9 @@ function go(url: string, _key: string) {
   box-sizing: border-box;
 }
 
-.cta-icon {
-  font-size: 40rpx;
-  line-height: 1.2;
+.cta-icon-img {
+  width: 52rpx;
+  height: 52rpx;
 }
 
 .cta-label {

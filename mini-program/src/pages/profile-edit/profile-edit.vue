@@ -5,7 +5,7 @@
       <view class="row">
         <text class="label">头像</text>
         <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
-          <image class="avatar" :src="avatarPreview || '/static/tab-mine.png'" mode="aspectFill" />
+          <image class="avatar" :src="avatarPreview || '/static/default_avatar.png'" mode="aspectFill" />
           <text class="avatar-tip">点击更换</text>
         </button>
       </view>

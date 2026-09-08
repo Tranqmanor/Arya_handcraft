@@ -14,7 +14,7 @@
     <view v-else class="profile">
       <!-- 资料卡(点击编辑) -->
       <view class="user-card" @click="go('/pages/profile-edit/profile-edit')">
-        <image class="avatar" :src="userStore.avatar || '/static/tab-mine.png'" mode="aspectFill" />
+        <image class="avatar" :src="userStore.avatar || '/static/default_avatar.png'" mode="aspectFill" />
         <view class="user-meta">
           <text class="nickname">{{ userStore.nickname }}</text>
           <text class="cat-name">{{ userStore.user?.cat_name ? `猫咪:${userStore.user.cat_name}` : '点击编辑资料' }}</text>
