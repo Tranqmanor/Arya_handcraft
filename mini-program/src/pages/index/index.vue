@@ -339,7 +339,7 @@ function previewWork(url: string) {
     /* 主页容器 */
     .home {
       padding: 24rpx 24rpx 0;
-      padding-bottom: 360rpx; /* 预留凸起 tabbar 空间 */
+      padding-bottom: 240rpx; /* tabbar 基础预留 */
     }
 
     /* ① 横图轮播 */
