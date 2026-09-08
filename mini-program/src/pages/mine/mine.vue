@@ -1,5 +1,10 @@
 <template>
   <view class="mine-page">
+    <!-- 自定义导航栏(custom:替代微信原生标题栏,左侧无返回箭头) -->
+    <view class="fake-nav">
+      <text class="fake-nav-title">我的</text>
+    </view>
+
     <!-- 未登录 -->
     <view v-if="!userStore.isLoggedIn" class="login-box">
       <image class="logo" src="/static/logo.png" mode="aspectFit" />
@@ -139,6 +144,22 @@ async function handleLogout() {
   padding: 32rpx;
   background: #faf6f0;
   padding-bottom: 240rpx; /* tabbar 基础预留 */
+}
+
+/* 自定义导航栏:高与微信标题栏一致,替代原生(取消左上角返回箭头) */
+.fake-nav {
+  height: 88rpx;
+  background: #faf6f0;
+  border-bottom: 1px solid #f0ebe6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fake-nav-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #5a5350;
 }
 
 .bottom-space {
