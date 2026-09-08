@@ -112,14 +112,14 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getCarouselImages, type CarouselImageItem } from '@/api/carousel'
 import { getHomeSettings, getWorks, type WorkItem } from '@/api/order'
 import AppTabbar from '@/components/app-tabbar.vue'
+import { appState } from '@/utils/app-state'
 
-// 欢迎页仅首次展示(模块级标记,redirectTo 重建实例也不重复)
-let welcomed = false
-const showWelcome = ref(!welcomed)
-if (!welcomed) {
+// 欢迎页仅小程序冷启动后的首次进入展示;从其他页面返回首页不再出现
+const showWelcome = ref(!appState.welcomed)
+if (!appState.welcomed) {
   setTimeout(() => {
     showWelcome.value = false
-    welcomed = true
+    appState.welcomed = true
   }, 2000)
 }
 
@@ -159,6 +159,17 @@ async function loadPromo() {
 async function loadWorks() {
   try {
     const list = await getWorks()
+    // 暂无已完成作品订单时,用占位图展示瀑布流效果;后台筛图设封面后自动替换为真实照片
+    if (list.length === 0) {
+      const placeholders = ['雪球', '煤球', '团子', '花卷', '布丁', '年糕']
+      list.push(
+        ...placeholders.map((name, i) => ({
+          cat_name: name,
+          cover_image_url: `https://picsum.photos/seed/arya-cat-${i + 1}/400/${340 + i * 60}`,
+          completed_at: null,
+        })),
+      )
+    }
     // 基于 id+名字长度的稳定伪随机高度:刷新不跳动,呈现"随机大小分布"
     const heights = ['440rpx', '540rpx', '360rpx']
     works.value = list.map((w, idx) => ({
