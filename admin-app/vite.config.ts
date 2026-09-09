@@ -2,10 +2,13 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { viteSingleFile } from 'vite-plugin-singlefile'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  // 单文件打包:JS/CSS 全部内联进 index.html
+  // (Android WebView 的 file:// 源禁止加载外链 ES Module,内联脚本不受限)
+  plugins: [vue(), viteSingleFile()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
