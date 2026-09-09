@@ -63,8 +63,8 @@ class _WebShellPageState extends State<WebShellPage> {
       // 允许 WebView 内 video 自动/手动播放策略放宽
       platform.setMediaPlaybackRequiresUserGesture(false);
     }
-    // debug 包开启 Chrome 远程调试(chrome://inspect 可看控制台,定位白屏必备)
-    _controller.setWebContentsDebuggingEnabled(true);
+    // 注:setWebContentsDebuggingEnabled 需 webview_flutter>=4.10,4.8.0 无此 API,
+    // 如需 Chrome 远程调试请升级依赖后再启用。
   }
 
   Future<void> _onExportCsv(JavaScriptMessage msg) async {
