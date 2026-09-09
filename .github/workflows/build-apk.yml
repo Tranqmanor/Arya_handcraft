@@ -38,6 +38,9 @@ jobs:
           flutter create --platforms=android --org app.arya --project-name arya_admin_app . || true
           cp /tmp/pubspec.bak pubspec.yaml
           grep -q "webapp/assets/" pubspec.yaml || { echo "pubspec 恢复失败"; cat pubspec.yaml; exit 1; }
+          # 桌面显示名改为中文
+          sed -i 's/android:label="arya_admin_app"/android:label="Arya手作管理"/' android/app/src/main/AndroidManifest.xml
+          grep -o 'android:label="[^"]*"' android/app/src/main/AndroidManifest.xml
           flutter pub get
           rm -rf webapp && mkdir -p webapp
           cp -r ../admin-app/dist/* webapp/

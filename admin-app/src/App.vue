@@ -42,7 +42,8 @@ setTimeout(() => {
   <div v-else class="app-root">
     <!-- 顶部导航 -->
     <header class="app-header">
-      <span class="app-title">Arya手作 · 管理</span>
+      <img class="app-logo" :src="`${BASE}icons/logo.png`" alt="" />
+      <span class="app-title">Arya手作 · 毛毡小店</span>
     </header>
 
     <!-- 当前 Tab 内容 -->
@@ -94,7 +95,15 @@ body,
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   flex-shrink: 0;
+}
+.app-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 .app-title {
   font-size: 17px;

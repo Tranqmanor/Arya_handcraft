@@ -1,7 +1,7 @@
 <template>
   <div class="welcome">
     <div class="paw-wrap">
-      <div class="paw">🐾</div>
+      <img class="paw" :src="`${BASE}icons/logo.png`" alt="Arya" />
     </div>
     <div class="brand">
       <div class="name">Arya手作</div>
@@ -15,6 +15,10 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+const BASE = import.meta.env.BASE_URL
+</script>
 
 <style scoped>
 .welcome {
@@ -31,7 +35,11 @@
 }
 
 .paw {
-  font-size: 100px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
   animation: breathe 2.4s ease-in-out infinite;
 }
 
