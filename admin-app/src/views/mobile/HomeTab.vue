@@ -24,9 +24,9 @@
             <span class="customer">{{ o.wechatName || o.customerName }}</span>
             <span class="status" :style="{ color: statusColor(o) }">{{ statusLabel(o) }}</span>
           </div>
-          <div v-if="o.catName || (o.catCount || 0) > 1" class="row2">
+          <div v-if="o.catName || (o.catCount || 0) > 2" class="row2">
             <span v-if="o.catName" class="cat">🐱 {{ o.catName }}</span>
-            <em v-if="(o.catCount || 0) > 1" class="cnt">{{ o.catCount }}只猫</em>
+            <em v-if="(o.catCount || 0) > 2" class="cnt">{{ o.catCount }}只猫</em>
           </div>
         </div>
         <span class="arrow">›</span>
@@ -47,7 +47,7 @@
         <div class="d-row"><span>排队编号</span><b>{{ queueNo(detailOrder.id) }}</b></div>
         <div class="d-row"><span>客户微信名</span><b>{{ detailOrder.wechatName || '—' }}</b></div>
         <div v-if="detailOrder.catName" class="d-row"><span>猫咪名字</span><b>{{ detailOrder.catName }}</b></div>
-        <div v-if="(detailOrder.catCount || 0) > 1" class="d-row"><span>猫咪数量</span><b>{{ detailOrder.catCount }}</b></div>
+        <div class="d-row"><span>猫咪数量</span><b>{{ detailOrder.catCount || 1 }}</b></div>
         <div class="d-row"><span>下单时间</span><b>{{ fmtTime(detailOrder.orderTime || detailOrder.createdAt) }}</b></div>
         <div class="d-row"><span>付款状态</span><b :style="{ color: statusColor(detailOrder) }">{{ statusLabel(detailOrder) }}</b></div>
         <div class="d-row"><span>联系电话</span><b>{{ detailOrder.phone || '—' }}</b></div>
