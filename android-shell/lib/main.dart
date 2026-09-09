@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -9,6 +10,14 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // 状态栏文字用深色(页面顶栏为浅色背景)
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ),
+  );
   runApp(const AryaAdminApp());
 }
 
@@ -86,9 +95,10 @@ class _WebShellPageState extends State<WebShellPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF6F0),
+      // 让出系统状态栏与手势条区域,避免遮挡页面顶栏/底部 TabBar
       body: SafeArea(
-        top: false,
-        bottom: false,
+        top: true,
+        bottom: true,
         child: WebViewWidget(controller: _controller),
       ),
     );

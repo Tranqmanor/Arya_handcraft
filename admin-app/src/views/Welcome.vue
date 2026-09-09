@@ -35,8 +35,8 @@ const BASE = import.meta.env.BASE_URL
 }
 
 .paw {
-  width: 160px;
-  height: 160px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
   background: #fff;
