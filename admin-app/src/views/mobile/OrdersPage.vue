@@ -29,7 +29,7 @@
             <div class="card-sub">
               <span>{{ o.wechatName || o.customerName }}</span>
               <span class="sub-right">
-                <em v-if="(o.catCount || 0) > 2" class="cnt">{{ o.catCount }}只猫</em>
+                <em class="cnt">{{ o.catCount || 1 }}只猫</em>
                 <span v-if="queueIndexOf(orders, o.id) > 0">排队 #{{ queueIndexOf(orders, o.id) }}</span>
               </span>
             </div>

@@ -24,9 +24,9 @@
             <span class="customer">{{ o.wechatName || o.customerName }}</span>
             <span class="status" :style="{ color: statusColor(o) }">{{ statusLabel(o) }}</span>
           </div>
-          <div v-if="o.catName || (o.catCount || 0) > 2" class="row2">
+          <div class="row2">
             <span v-if="o.catName" class="cat">🐱 {{ o.catName }}</span>
-            <em v-if="(o.catCount || 0) > 2" class="cnt">{{ o.catCount }}只猫</em>
+            <em class="cnt">{{ o.catCount || 1 }}只猫</em>
           </div>
         </div>
         <span class="arrow">›</span>
