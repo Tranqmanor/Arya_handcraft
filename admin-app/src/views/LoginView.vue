@@ -45,98 +45,137 @@ async function tryOnlineLogin(pass: string) {
 
 <template>
   <div class="login-page">
-    <div class="login-brand">
+    <!-- 品牌头部卡片 -->
+    <div class="brand-card">
       <img :src="`${BASE}icons/logo.png`" alt="Arya手作" />
-      <div>
+      <div class="brand-text">
         <b>Arya手作管理端</b>
         <span>订单 · 排队 · 账单</span>
       </div>
     </div>
 
+    <!-- 登录卡片 -->
     <div class="login-card">
       <div class="login-title">管理员登录</div>
-      <div class="field-row"><label>账号</label><input v-model="loginUser" placeholder="admin" /></div>
-      <div class="field-row"><label>密码</label><input v-model="loginPass" type="password" placeholder="请输入密码" @keyup.enter="doLogin" /></div>
-      <p class="login-tip">首次使用:输入的密码即成为本机管理密码;若已登录在线后台,密码与在线后台一致。</p>
+      <div class="field-row">
+        <label>账号</label>
+        <input v-model="loginUser" placeholder="admin" />
+      </div>
+      <div class="field-row">
+        <label>密码</label>
+        <input v-model="loginPass" type="password" placeholder="请输入密码" @keyup.enter="doLogin" />
+      </div>
+      <p class="login-tip">首次使用:输入的密码即成为本机管理密码;若已开通在线后台,请使用后台账号密码。</p>
       <button class="btn btn-primary" @click="doLogin">进入管理</button>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* 整屏上下左右居中,两张卡片间距拉开 */
 .login-page {
-  padding: calc(40px + var(--safe-top)) 16px 24px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 56px;
+  padding: 24px 32px calc(32px + env(safe-area-inset-bottom));
 }
-.login-brand {
+
+/* 1. 品牌头部卡片 */
+.brand-card {
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
+  border-radius: 22px;
+  padding: 26px 24px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 28px;
+  justify-content: center;
+  gap: 16px;
+  box-shadow: 0 6px 24px rgba(169, 139, 132, 0.12);
 }
-.login-brand img {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+.brand-card img {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
   object-fit: cover;
-}
-.login-brand b {
   display: block;
-  font-size: 18px;
 }
-.login-brand span {
+.brand-text b {
   display: block;
+  font-size: 20px;
+  color: #5a5350;
+  letter-spacing: 1px;
+}
+.brand-text span {
+  display: block;
+  margin-top: 4px;
   font-size: 12px;
-  color: var(--muted);
+  color: #b9b1ac;
 }
+
+/* 2. 登录卡片 */
 .login-card {
+  width: 100%;
+  max-width: 380px;
   background: #fff;
-  border-radius: var(--radius);
-  padding: 16px;
-  box-shadow: var(--shadow);
+  border-radius: 22px;
+  padding: 26px 24px;
+  box-shadow: 0 6px 24px rgba(169, 139, 132, 0.12);
 }
 .login-title {
-  font-size: 15px;
+  text-align: center;
+  font-size: 17px;
   font-weight: 600;
-  margin-bottom: 12px;
+  color: #5a5350;
+  margin-bottom: 18px;
 }
 .field-row {
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 .field-row label {
   display: block;
   font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 4px;
+  color: #7a716d;
+  margin-bottom: 5px;
 }
 .field-row input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 12px 14px;
+  border: 1px solid #f0ebe6;
+  border-radius: 12px;
+  font-size: 15px;
   outline: none;
-  background: #fff;
+  background: #faf6f0;
+  box-sizing: border-box;
 }
 .field-row input:focus {
-  border-color: var(--primary);
+  border-color: #c9a9a6;
+  background: #fff;
 }
 .login-tip {
   font-size: 11px;
-  color: var(--muted);
-  margin: 4px 0 12px;
-  line-height: 1.5;
+  color: #b9b1ac;
+  line-height: 1.6;
+  margin: 2px 0 16px;
 }
 .btn {
   width: 100%;
-  padding: 12px;
+  padding: 13px;
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 12px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
 }
 .btn-primary {
-  background: var(--primary);
+  background: linear-gradient(160deg, #c9a9a6, #a98b84);
   color: #fff;
+}
+.btn-primary:active {
+  opacity: 0.85;
 }
 </style>
