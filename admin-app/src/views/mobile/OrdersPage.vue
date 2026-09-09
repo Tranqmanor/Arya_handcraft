@@ -14,13 +14,21 @@
 
     <div class="order-list">
       <div v-for="o in displayOrders" :key="o.id" class="order-card" @click="openEdit(o)">
-        <div class="card-head">
-          <span class="cat">{{ o.catName }}</span>
-          <span class="status" :style="{ color: colorOf(o) }">{{ labelOf(o) }}</span>
-        </div>
-        <div class="card-sub">
-          <span>{{ o.wechatName || o.customerName }}</span>
-          <span v-if="queueIndexOf(orders, o.id) > 0">排队 #{{ queueIndexOf(orders, o.id) }}</span>
+        <div class="card-body">
+          <div class="cat-photo">
+            <img v-if="o.catPhoto" :src="o.catPhoto" alt="" />
+            <span v-else class="photo-ph">🐾</span>
+          </div>
+          <div class="card-main">
+            <div class="card-head">
+              <span class="cat">{{ o.catName }}</span>
+              <span class="status" :style="{ color: colorOf(o) }">{{ labelOf(o) }}</span>
+            </div>
+            <div class="card-sub">
+              <span>{{ o.wechatName || o.customerName }}</span>
+              <span v-if="queueIndexOf(orders, o.id) > 0">排队 #{{ queueIndexOf(orders, o.id) }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -33,6 +41,15 @@
         <div class="field-row"><label>客户微信名</label><input v-model="form.wechatName" placeholder="必填(首页排队展示)" /></div>
         <div class="field-row"><label>客户姓名</label><input v-model="form.customerName" placeholder="选填" /></div>
         <div class="field-row"><label>猫咪名字</label><input v-model="form.catName" placeholder="必填" /></div>
+        <div class="field-row">
+          <label>猫咪照片</label>
+          <div class="photo-picker" @click="fileInput?.click()">
+            <img v-if="form.catPhoto" :src="form.catPhoto" alt="" />
+            <div v-else class="photo-empty">＋<span>上传照片</span></div>
+            <button v-if="form.catPhoto" class="photo-remove" @click.stop="form.catPhoto = ''">×</button>
+          </div>
+          <input ref="fileInput" type="file" accept="image/*" hidden @change="onPhotoPicked" />
+        </div>
         <div class="field-row">
           <label>下单时间</label>
           <el-date-picker
@@ -91,6 +108,7 @@ import { computed, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { createLocalOrder, queueIndexOf, timeMs } from '@/local/store'
+import { compressImageToDataUrl } from '@/local/img'
 import { useAppStore } from '@/stores/app'
 import { downloadCsv, ordersToCsv } from '@/local/csv'
 import { PAYMENT_COLOR, PAYMENT_LABEL, paymentStatusOf, type LocalOrder } from '@/local/types'
@@ -106,12 +124,27 @@ const form = reactive({
   wechatName: '',
   customerName: '',
   catName: '',
+  catPhoto: '',
   orderTime: '' as string,
   phone: '',
   address: '',
   note: '',
   totalPrice: 0,
 })
+
+const fileInput = ref<HTMLInputElement | null>(null)
+
+async function onPhotoPicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  try {
+    form.catPhoto = await compressImageToDataUrl(file)
+  } catch {
+    ElMessage.error('照片读取失败,请换一张试试')
+  }
+  input.value = '' // 允许连续选同一文件
+}
 
 /** 付款状态单选:未付 / 排队定金 / 制作定金 / 尾款(递进,保存时映射三布尔) */
 const payStatus = ref<'none' | 'deposit' | 'making' | 'final'>('none')
@@ -150,6 +183,7 @@ function openCreate() {
     wechatName: '',
     customerName: '',
     catName: '',
+    catPhoto: '',
     orderTime: '',
     phone: '',
     address: '',
@@ -166,6 +200,7 @@ function openEdit(o: LocalOrder) {
     wechatName: o.wechatName || '',
     customerName: o.customerName,
     catName: o.catName,
+    catPhoto: o.catPhoto || '',
     orderTime: o.orderTime || o.createdAt,
     phone: o.phone || '',
     address: o.address || '',
@@ -198,6 +233,7 @@ function save() {
     wechatName: form.wechatName.trim(),
     customerName: form.customerName.trim(),
     catName: form.catName.trim(),
+    catPhoto: form.catPhoto || undefined,
     orderTime: form.orderTime,
     phone: form.phone.trim(),
     address: form.address.trim(),
@@ -303,6 +339,37 @@ function goBack() {
   box-shadow: 0 2px 8px rgba(90, 83, 80, 0.06);
   cursor: pointer;
 }
+.card-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card-main {
+  flex: 1;
+  min-width: 0;
+}
+/* 圆角正方形猫咪照片 */
+.cat-photo {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f5efe8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cat-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.photo-ph {
+  font-size: 22px;
+  opacity: 0.6;
+}
 .card-head {
   display: flex;
   justify-content: space-between;
@@ -365,6 +432,52 @@ function goBack() {
   border-radius: 8px;
   font-size: 14px;
   background: #faf6f0;
+}
+
+/* 表单内照片选择器 */
+.photo-picker {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #faf6f0;
+  border: 1px dashed #e0d6cd;
+  cursor: pointer;
+}
+.photo-picker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.photo-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: #b9b1ac;
+  font-size: 24px;
+}
+.photo-empty span {
+  font-size: 11px;
+}
+.photo-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
 }
 .amount-grid {
   display: grid;

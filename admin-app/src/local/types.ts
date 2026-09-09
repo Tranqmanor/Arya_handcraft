@@ -16,6 +16,8 @@ export interface LocalOrder {
   /** 客户姓名(选填) */
   customerName: string
   catName: string
+  /** 猫咪照片(压缩后的 dataURL,选填) */
+  catPhoto?: string
   phone?: string
   address?: string
   requirement?: string

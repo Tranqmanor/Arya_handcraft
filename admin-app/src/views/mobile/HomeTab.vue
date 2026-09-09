@@ -14,7 +14,11 @@
         class="queue-card"
         @click="openDetail(o)"
       >
-        <div class="queue-no">#{{ idx + 1 }}</div>
+        <div class="q-badge">{{ idx + 1 }}</div>
+        <div class="cat-photo">
+          <img v-if="o.catPhoto" :src="o.catPhoto" alt="" />
+          <span v-else class="photo-ph">🐾</span>
+        </div>
         <div class="queue-main">
           <div class="row1">
             <span class="customer">{{ o.wechatName || o.customerName }}</span>
@@ -33,7 +37,9 @@
       <div class="detail-panel">
         <div class="detail-title">{{ detailOrder.catName }} · {{ detailOrder.wechatName || detailOrder.customerName }}</div>
 
-        <div class="d-row"><span>排队编号</span><b>#{{ queueNo(detailOrder.id) }}</b></div>
+        <div v-if="detailOrder.catPhoto" class="detail-photo"><img :src="detailOrder.catPhoto" alt="" /></div>
+
+        <div class="d-row"><span>排队编号</span><b>{{ queueNo(detailOrder.id) }}</b></div>
         <div class="d-row"><span>客户微信名</span><b>{{ detailOrder.wechatName || '—' }}</b></div>
         <div class="d-row"><span>下单时间</span><b>{{ fmtTime(detailOrder.orderTime || detailOrder.createdAt) }}</b></div>
         <div class="d-row"><span>付款状态</span><b :style="{ color: statusColor(detailOrder) }">{{ statusLabel(detailOrder) }}</b></div>
@@ -123,18 +129,41 @@ function fmtTime(iso: string) {
   box-shadow: 0 2px 8px rgba(90, 83, 80, 0.06);
   cursor: pointer;
 }
-.queue-no {
-  width: 40px;
-  height: 40px;
+.queue-no,
+.q-badge {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #f0e8e4;
-  color: #a98b84;
-  font-size: 16px;
+  background: linear-gradient(160deg, #c9a9a6, #a98b84);
+  color: #fff;
+  font-size: 14px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+/* 圆角正方形猫咪照片 */
+.cat-photo {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f5efe8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cat-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.photo-ph {
+  font-size: 22px;
+  opacity: 0.6;
 }
 .queue-main {
   flex: 1;
@@ -188,6 +217,20 @@ function fmtTime(iso: string) {
   color: #5a5350;
   margin-bottom: 14px;
   text-align: center;
+}
+.detail-photo {
+  width: 110px;
+  height: 110px;
+  border-radius: 18px;
+  overflow: hidden;
+  margin: 0 auto 14px;
+  background: #f5efe8;
+}
+.detail-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .d-row {
   display: flex;
