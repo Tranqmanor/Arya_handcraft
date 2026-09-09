@@ -33,6 +33,10 @@ export const useAppStore = defineStore('app', {
       this.orders = [...this.orders, order]
       this.persist()
     },
+    addOrders(newOrders: LocalOrder[]) {
+      this.orders = [...this.orders, ...newOrders]
+      this.persist()
+    },
     updateOrder(order: LocalOrder) {
       this.orders = this.orders.map((o) => (o.id === order.id ? order : o))
       this.persist()

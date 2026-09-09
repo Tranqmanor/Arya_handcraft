@@ -17,10 +17,6 @@ export function saveOrders(orders: LocalOrder[]) {
   localStorage.setItem(KEY, JSON.stringify(orders))
 }
 
-function genId(): string {
-  return `O-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
-}
-
 export function nowIso(): string {
   return new Date().toISOString()
 }
@@ -28,6 +24,11 @@ export function nowIso(): string {
 /** 新建订单(自动填 id/createdAt) */
 export function createLocalOrder(partial: Omit<LocalOrder, 'id' | 'createdAt'>): LocalOrder {
   return { ...partial, id: genId(), createdAt: nowIso() }
+}
+
+/** 生成订单 id */
+export function genId(): string {
+  return `O-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
 }
 
 /** 删除订单 */

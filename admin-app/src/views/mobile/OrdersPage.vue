@@ -3,7 +3,9 @@
     <div class="top-bar">
       <span class="back" @click="goBack">‹ 返回</span>
       <span class="title">订单信息</span>
+      <span class="action" @click="importCsv">导入 CSV</span>
       <span class="action" @click="exportCsv">导出 CSV</span>
+      <input ref="importInput" type="file" accept=".csv,text/csv" hidden @change="onImportFile" />
     </div>
 
     <div class="btn-row">
@@ -110,7 +112,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { createLocalOrder, queueIndexOf, timeMs } from '@/local/store'
 import { compressImageToDataUrl } from '@/local/img'
 import { useAppStore } from '@/stores/app'
-import { downloadCsv, ordersToCsv } from '@/local/csv'
+import { downloadCsv, ordersToCsv, ordersFromCsv } from '@/local/csv'
 import { PAYMENT_COLOR, PAYMENT_LABEL, paymentStatusOf, type LocalOrder } from '@/local/types'
 
 const store = useAppStore()
@@ -144,6 +146,43 @@ async function onPhotoPicked(e: Event) {
     ElMessage.error('照片读取失败,请换一张试试')
   }
   input.value = '' // 允许连续选同一文件
+}
+
+// —— CSV 导入 ——
+const importInput = ref<HTMLInputElement | null>(null)
+
+function importCsv() {
+  importInput.value?.click()
+}
+
+async function onImportFile(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  let text = ''
+  try {
+    text = await file.text()
+  } catch {
+    ElMessage.error('文件读取失败')
+    return
+  }
+  const parsed = ordersFromCsv(text)
+  if (parsed.length === 0) {
+    ElMessage.error('未识别到订单:请使用本 App 导出的 CSV(列名需一致,且含「猫咪名字」「付款状态」列)')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(
+      `识别到 ${parsed.length} 条订单,将作为新订单追加导入(猫咪照片不随 CSV 保存)。`,
+      '导入 CSV',
+      { confirmButtonText: '导入', cancelButtonText: '取消', type: 'info' },
+    )
+  } catch {
+    return // 用户取消
+  }
+  store.addOrders(parsed)
+  ElMessage.success(`已导入 ${parsed.length} 条订单`)
 }
 
 /** 付款状态单选:未付 / 排队定金 / 制作定金 / 尾款(递进,保存时映射三布尔) */
@@ -291,7 +330,7 @@ function goBack() {
 .top-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 14px;
 }
 .back {
@@ -300,6 +339,8 @@ function goBack() {
   font-size: 15px;
 }
 .title {
+  flex: 1;
+  text-align: center;
   font-weight: 600;
   color: #5a5350;
   font-size: 16px;
@@ -308,6 +349,7 @@ function goBack() {
   color: #a98b84;
   cursor: pointer;
   font-size: 13px;
+  white-space: nowrap;
 }
 .btn-row {
   margin-bottom: 12px;
