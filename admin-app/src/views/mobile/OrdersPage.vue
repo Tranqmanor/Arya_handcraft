@@ -98,14 +98,7 @@
         </div>
         <div class="field-row">
           <label>下单时间</label>
-          <el-date-picker
-            v-model="form.orderTime"
-            type="datetime"
-            placeholder="选择下单时间"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-            format="YYYY-MM-DD HH:mm"
-            style="width: 100%"
-          />
+          <input v-model="form.orderTime" type="datetime-local" step="1" />
         </div>
         <div class="field-row"><label>联系电话</label><input v-model="form.phone" placeholder="选填" /></div>
         <div class="field-row"><label>邮寄地址</label><input v-model="form.address" placeholder="选填" /></div>
