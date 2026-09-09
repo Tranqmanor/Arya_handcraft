@@ -6,9 +6,14 @@ export interface LocalOrder {
   /** 录入时间(ISO,用作队列基础排序) */
   createdAt: string
   totalPrice?: number
+  /** 客户微信名(必填,首页排队展示用) */
+  wechatName?: string
+  /** 客户自行下单时间(ISO,必填;排队排序依据,补录旧单可排到正确位置) */
+  orderTime?: string
   /** 手动编辑的排队号(可为空,留空则按录入顺序自动编号) */
   queueNo?: number
 
+  /** 客户姓名(选填) */
   customerName: string
   catName: string
   phone?: string

@@ -17,7 +17,7 @@
         <div class="queue-no">#{{ idx + 1 }}</div>
         <div class="queue-main">
           <div class="row1">
-            <span class="customer">{{ o.customerName }}</span>
+            <span class="customer">{{ o.wechatName || o.customerName }}</span>
             <span class="status" :style="{ color: statusColor(o) }">{{ statusLabel(o) }}</span>
           </div>
           <div class="row2">
@@ -31,9 +31,11 @@
     <!-- 订单详情弹层 -->
     <div v-if="detailOrder" class="detail-overlay" @click.self="detailOrder = null">
       <div class="detail-panel">
-        <div class="detail-title">{{ detailOrder.catName }} · {{ detailOrder.customerName }}</div>
+        <div class="detail-title">{{ detailOrder.catName }} · {{ detailOrder.wechatName || detailOrder.customerName }}</div>
 
         <div class="d-row"><span>排队编号</span><b>#{{ queueNo(detailOrder.id) }}</b></div>
+        <div class="d-row"><span>客户微信名</span><b>{{ detailOrder.wechatName || '—' }}</b></div>
+        <div class="d-row"><span>下单时间</span><b>{{ fmtTime(detailOrder.orderTime || detailOrder.createdAt) }}</b></div>
         <div class="d-row"><span>付款状态</span><b :style="{ color: statusColor(detailOrder) }">{{ statusLabel(detailOrder) }}</b></div>
         <div class="d-row"><span>联系电话</span><b>{{ detailOrder.phone || '—' }}</b></div>
         <div class="d-row"><span>邮寄地址</span><b>{{ detailOrder.address || '—' }}</b></div>
@@ -77,6 +79,12 @@ function queueNo(id: string) {
 
 function openDetail(o: LocalOrder) {
   detailOrder.value = o
+}
+
+function fmtTime(iso: string) {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 </script>
 

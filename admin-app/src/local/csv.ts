@@ -2,11 +2,13 @@
 import type { LocalOrder } from './types'
 
 export function ordersToCsv(orders: LocalOrder[]): string {
-  const header = ['序号', '客户姓名', '猫咪名字', '排队定金', '制作定金', '尾款', '付款状态', '电话', '地址', '备注', '录入时间']
+  const header = ['序号', '客户微信名', '客户姓名', '猫咪名字', '下单时间', '排队定金', '制作定金', '尾款', '付款状态', '电话', '地址', '备注']
   const rows = orders.map((o, i) => [
     String(i + 1),
+    o.wechatName || '',
     o.customerName,
     o.catName,
+    formatDate(o.orderTime || o.createdAt),
     String(o.depositDue),
     String(o.makingDue),
     String(o.finalDue),
@@ -14,7 +16,6 @@ export function ordersToCsv(orders: LocalOrder[]): string {
     o.phone || '',
     (o.address || '').replace(/[\r\n,]/g, ' '),
     (o.note || '').replace(/[\r\n,]/g, ' '),
-    formatDate(o.createdAt),
   ])
   return [header, ...rows].map((r) => r.map(esc).join(',')).join('\r\n')
 }

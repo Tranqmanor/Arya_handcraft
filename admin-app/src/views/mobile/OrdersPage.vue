@@ -19,7 +19,7 @@
           <span class="status" :style="{ color: colorOf(o) }">{{ labelOf(o) }}</span>
         </div>
         <div class="card-sub">
-          <span>{{ o.customerName }}</span>
+          <span>{{ o.wechatName || o.customerName }}</span>
           <span v-if="queueIndexOf(orders, o.id) > 0">排队 #{{ queueIndexOf(orders, o.id) }}</span>
         </div>
       </div>
@@ -30,8 +30,20 @@
       <div class="form-panel">
         <div class="form-title">{{ editingId ? '编辑订单' : '新增订单' }}</div>
 
-        <div class="field-row"><label>客户姓名</label><input v-model="form.customerName" placeholder="必填" /></div>
+        <div class="field-row"><label>客户微信名</label><input v-model="form.wechatName" placeholder="必填(首页排队展示)" /></div>
+        <div class="field-row"><label>客户姓名</label><input v-model="form.customerName" placeholder="选填" /></div>
         <div class="field-row"><label>猫咪名字</label><input v-model="form.catName" placeholder="必填" /></div>
+        <div class="field-row">
+          <label>下单时间</label>
+          <el-date-picker
+            v-model="form.orderTime"
+            type="datetime"
+            placeholder="选择下单时间"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            format="YYYY-MM-DD HH:mm"
+            style="width: 100%"
+          />
+        </div>
         <div class="field-row"><label>联系电话</label><input v-model="form.phone" placeholder="选填" /></div>
         <div class="field-row"><label>邮寄地址</label><input v-model="form.address" placeholder="选填" /></div>
         <div class="field-row"><label>备注</label><input v-model="form.note" placeholder="选填" /></div>
@@ -78,7 +90,7 @@
 import { computed, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-import { createLocalOrder, queueIndexOf } from '@/local/store'
+import { createLocalOrder, queueIndexOf, timeMs } from '@/local/store'
 import { useAppStore } from '@/stores/app'
 import { downloadCsv, ordersToCsv } from '@/local/csv'
 import { PAYMENT_COLOR, PAYMENT_LABEL, paymentStatusOf, type LocalOrder } from '@/local/types'
@@ -91,8 +103,10 @@ const editingId = ref<string | null>(null)
 const emit = defineEmits<{ back: [] }>()
 
 const form = reactive({
+  wechatName: '',
   customerName: '',
   catName: '',
+  orderTime: '' as string,
   phone: '',
   address: '',
   note: '',
@@ -106,11 +120,12 @@ function pickPay(s: 'deposit' | 'making' | 'final') {
   payStatus.value = payStatus.value === s ? 'none' : s
 }
 
-// —— 自动计算:排队定金固定 0;制作定金 = floor10(总价×30%);尾款 = 余额 ——
-const depositDue = computed(() => 0)
+// —— 自动计算:排队定金固定 300;总价≥1000 时制作定金 = floor10(总价×30% − 300),否则 0;尾款 = 余额 ——
+const depositDue = computed(() => 300)
 const makingDue = computed(() => {
   const t = Number(form.totalPrice) || 0
-  return Math.floor((t * 0.3) / 10) * 10
+  if (t < 1000) return 0
+  return Math.floor((t * 0.3 - 300) / 10) * 10
 })
 const finalDue = computed(() => {
   const t = Number(form.totalPrice) || 0
@@ -118,7 +133,7 @@ const finalDue = computed(() => {
 })
 
 const displayOrders = computed(() =>
-  [...orders.value].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)),
+  [...orders.value].sort((a, b) => timeMs(b) - timeMs(a)),
 )
 
 function labelOf(o: LocalOrder) {
@@ -132,8 +147,10 @@ function colorOf(o: LocalOrder) {
 function openCreate() {
   editingId.value = null
   Object.assign(form, {
+    wechatName: '',
     customerName: '',
     catName: '',
+    orderTime: '',
     phone: '',
     address: '',
     note: '',
@@ -146,8 +163,10 @@ function openCreate() {
 function openEdit(o: LocalOrder) {
   editingId.value = o.id
   Object.assign(form, {
+    wechatName: o.wechatName || '',
     customerName: o.customerName,
     catName: o.catName,
+    orderTime: o.orderTime || o.createdAt,
     phone: o.phone || '',
     address: o.address || '',
     note: o.note || '',
@@ -158,8 +177,16 @@ function openEdit(o: LocalOrder) {
 }
 
 function save() {
-  if (!form.customerName.trim() || !form.catName.trim()) {
-    ElMessage.warning('客户姓名与猫咪名字为必填')
+  if (!form.wechatName.trim()) {
+    ElMessage.warning('请填写客户微信名')
+    return
+  }
+  if (!form.catName.trim()) {
+    ElMessage.warning('请填写猫咪名字')
+    return
+  }
+  if (!form.orderTime) {
+    ElMessage.warning('请选择下单时间')
     return
   }
   const total = Number(form.totalPrice) || 0
@@ -168,8 +195,10 @@ function save() {
     return
   }
   const data = {
+    wechatName: form.wechatName.trim(),
     customerName: form.customerName.trim(),
     catName: form.catName.trim(),
+    orderTime: form.orderTime,
     phone: form.phone.trim(),
     address: form.address.trim(),
     note: form.note.trim(),

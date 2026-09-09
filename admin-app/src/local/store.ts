@@ -51,9 +51,14 @@ export function queuedOrders(orders: LocalOrder[]): LocalOrder[] {
     .sort((a, b) => sortKey(a) - sortKey(b))
 }
 
+/** 排队/列表排序时间:优先客户下单时间,回退录入时间 */
+export function timeMs(o: LocalOrder): number {
+  return o.orderTime ? Date.parse(o.orderTime) : Date.parse(o.createdAt)
+}
+
 function sortKey(o: LocalOrder): number {
   if (o.queueNo != null && o.queueNo > 0) return o.queueNo
-  return Date.parse(o.createdAt)
+  return timeMs(o)
 }
 
 /** 该订单在队列中的编号(从 1 起);不在队返回 0 */
