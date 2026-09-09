@@ -3,7 +3,7 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores/app'
-import { tryOnlineLogin } from '@/api/online'
+import { adminLogin } from '@/api/online'
 import aryapng from '@/assets/aryapng.png'
 
 const store = useAppStore()
@@ -28,6 +28,17 @@ async function doLogin() {
     tryOnlineLogin(loginPass.value)
   } else {
     ElMessage.error('账号或密码错误')
+  }
+}
+
+/** 双模式:本地校验通过后,静默尝试在线登录(在线模块需要 token) */
+async function tryOnlineLogin(pass: string) {
+  try {
+    const res = await adminLogin('admin', pass)
+    localStorage.setItem('admin_token', res.access_token)
+    ElMessage.success('在线功能已同步登录')
+  } catch {
+    ElMessage.info('在线模块未登录(密码与后台不一致或网络不可用),本地功能不受影响')
   }
 }
 </script>
