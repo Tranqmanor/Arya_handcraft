@@ -41,18 +41,14 @@ export function updateLocalOrder(orders: LocalOrder[], updated: LocalOrder): Loc
 }
 
 /**
- * 排队列表:付款状态 ∈ {deposit_paid, making_paid} 且在队。
+ * 排队列表:付款状态 ∈ {排队定金已付, 制作定金已付} 且尾款未付。
  * 排序:手动 queueNo 优先,否则按 createdAt 升序。
  * 即「尾款已支付即出队,后续自动进位」。
  */
 export function queuedOrders(orders: LocalOrder[]): LocalOrder[] {
   return orders
-    .filter((o) => promisePaid(o))
+    .filter((o) => (o.depositPaid || o.makingPaid) && !o.finalPaid)
     .sort((a, b) => sortKey(a) - sortKey(b))
-}
-
-function promisePaid(o: LocalOrder): boolean {
-  return o.depositPaid || o.makingPaid
 }
 
 function sortKey(o: LocalOrder): number {

@@ -43,7 +43,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 
+import { adminLogin } from '@/api/online'
 import { summarize } from '@/local/bills'
 import { useAppStore } from '@/stores/app'
 
@@ -56,25 +58,39 @@ const nickname = ref(localStorage.getItem('arya_admin_nickname') || '')
 
 const totalIncome = computed(() => summarize(store.orders).totalReceived)
 
-function doLogin() {
-  // 本地登录:首启使用后台密码 ADMIN_INIT_PASSWORD;之后可自定义(存 localStorage)
+async function doLogin() {
   const saved = localStorage.getItem('arya_admin_pass')
   if (!saved) {
     // 首次登录:将输入的密码存为本地密码
     if (!loginPass.value) {
-      alert('请输入密码')
+      ElMessage.warning('请输入密码')
       return
     }
     localStorage.setItem('arya_admin_pass', loginPass.value)
     localStorage.setItem('arya_admin_logged', '1')
     loggedIn.value = true
+    ElMessage.success('已设为本地登录密码')
+    tryOnlineLogin(loginPass.value)
     return
   }
   if (loginUser.value === 'admin' && loginPass.value === saved) {
     localStorage.setItem('arya_admin_logged', '1')
     loggedIn.value = true
+    tryOnlineLogin(loginPass.value)
   } else {
-    alert('账号或密码错误')
+    ElMessage.error('账号或密码错误')
+  }
+}
+
+/** 双模式:本地校验通过后,静默尝试在线登录(在线模块需要 token) */
+async function tryOnlineLogin(pass: string) {
+  try {
+    const res = await adminLogin('admin', pass)
+    localStorage.setItem('admin_token', res.access_token)
+    ElMessage.success('在线功能已同步登录')
+  } catch {
+    // 密码与后台不一致或网络不可用:仅提示,不阻塞本地功能
+    ElMessage.info('在线模块未登录(密码与后台不一致或网络不可用),本地功能不受影响')
   }
 }
 
@@ -88,6 +104,7 @@ function editName() {
 
 function logout() {
   localStorage.setItem('arya_admin_logged', '0')
+  localStorage.removeItem('admin_token')
   loggedIn.value = false
 }
 </script>

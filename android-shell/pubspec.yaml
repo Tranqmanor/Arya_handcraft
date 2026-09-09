@@ -1,0 +1,23 @@
+name: arya_admin_app
+description: Arya手作管理 App(WebView 壳,离线本地订单 + 在线后台)
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_flutter: ^4.8.0
+  webview_flutter_android: ^3.16.0
+  path_provider: ^2.1.3
+  share_plus: ^9.0.0
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - webapp/

@@ -1,0 +1,148 @@
+
+.op-page {
+  padding: 16px;
+}
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.back {
+  color: #a98b84;
+  cursor: pointer;
+  font-size: 15px;
+}
+.title {
+  font-weight: 600;
+  color: #5a5350;
+  font-size: 16px;
+}
+.action {
+  color: #a98b84;
+  cursor: pointer;
+  font-size: 13px;
+}
+.state-tip {
+  color: #b9b1ac;
+  text-align: center;
+  padding: 40px 0;
+}
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(90, 83, 80, 0.06);
+  cursor: pointer;
+}
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #5a5350;
+  flex: 1;
+}
+.card-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #b9b1ac;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+}
+.panel {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.panel-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #5a5350;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.field {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field label {
+  font-size: 12px;
+  color: #7a716d;
+}
+.field input,
+.field select,
+.field textarea {
+  padding: 10px 12px;
+  border: 1px solid #f0ebe6;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #faf6f0;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.field textarea {
+  resize: vertical;
+}
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #5a5350;
+  margin-bottom: 10px;
+}
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn.primary {
+  background: linear-gradient(160deg, #c9a9a6, #a98b84);
+  color: #fff;
+  font-weight: 600;
+}
+.btn.primary:disabled {
+  opacity: 0.6;
+}
+.btn.ghost {
+  background: #fff;
+  color: #7a716d;
+  border: 1px solid #e5ded8;
+}
+.btn.del {
+  margin-top: 10px;
+  background: #fff;
+  color: #c0392b;
+  border: 1px solid #e8c4be;
+}

@@ -45,9 +45,20 @@ function formatDate(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-/** 触发浏览器下载 .csv 文件(安卓 WebView 中可用于导出) */
+/**
+ * 触发 CSV 导出。
+ * - Android WebView 壳:通过原生桥(window.exportCsv)写文件并唤起系统分享
+ * - 浏览器/开发环境:blob 下载
+ */
 export function downloadCsv(filename: string, csv: string) {
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' })
+  const content = '\ufeff' + csv
+  const bridge = (window as unknown as Record<string, { postMessage(msg: string): void } | undefined>)
+    .exportCsv
+  if (bridge?.postMessage) {
+    bridge.postMessage(`${filename}\u0000${content}`)
+    return
+  }
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

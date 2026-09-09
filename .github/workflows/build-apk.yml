@@ -1,0 +1,48 @@
+name: Build Admin APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'admin-app/**'
+      - 'android-shell/**'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1) 构建移动端 Web 产物
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build admin-app (web)
+        working-directory: admin-app
+        run: |
+          npm ci
+          npm run build
+
+      # 2) Flutter 壳:补齐 android 平台目录并打包
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          cache: true
+      - name: Assemble shell
+        working-directory: android-shell
+        run: |
+          rm -rf webapp && mkdir -p webapp
+          cp -r ../admin-app/dist/* webapp/
+          flutter create --platforms=android --org app.arya --project-name arya_admin_app .
+          flutter pub get
+      - name: Build release APK
+        working-directory: android-shell
+        run: flutter build apk --release
+
+      # 3) 产出 artifact(在 Actions 页面下载 app-release.apk)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arya-admin-app-apk
+          path: android-shell/build/app/outputs/flutter-apk/app-release.apk

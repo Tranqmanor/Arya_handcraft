@@ -6,11 +6,14 @@ import type { LocalOrder } from '@/local/types'
 
 export type TabKey = 'home' | 'manage' | 'stats' | 'mine'
 
+/** 内页:tab 之外的全屏页 */
+export type AppPage = 'tabs' | 'orders' | 'articles' | 'videos' | 'carousel' | 'coupons'
+
 export const useAppStore = defineStore('app', {
   state: () => ({
     orders: loadOrders() as LocalOrder[],
-    /** 当前展示页:tab 四页之外的内页(如订单管理) */
-    page: 'tabs' as 'tabs' | 'orders',
+    /** 当前展示页:tab 四页之外的内页 */
+    page: 'tabs' as AppPage,
     /** 当前激活的 Tab */
     activeTab: 'home' as TabKey,
   }),
@@ -40,7 +43,7 @@ export const useAppStore = defineStore('app', {
       this.orders = loadOrders()
     },
     /** 切换 Tab 并可选地进入某内页 */
-    goto(tab: TabKey, page: 'tabs' | 'orders' = 'tabs') {
+    goto(tab: TabKey, page: AppPage = 'tabs') {
       this.activeTab = tab
       this.page = page
     },

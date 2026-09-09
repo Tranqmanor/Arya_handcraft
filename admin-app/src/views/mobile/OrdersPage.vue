@@ -73,18 +73,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 
-import {
-  createLocalOrder,
-  deleteLocalOrder,
-  loadOrders,
-  queueIndexOf,
-  saveOrders,
-  updateLocalOrder,
-} from '@/local/store'
+import { createLocalOrder, queueIndexOf } from '@/local/store'
+import { useAppStore } from '@/stores/app'
 import { downloadCsv, ordersToCsv } from '@/local/csv'
 import { PAYMENT_COLOR, PAYMENT_LABEL, paymentStatusOf, type LocalOrder } from '@/local/types'
 
-const orders = ref<LocalOrder[]>(loadOrders())
+const store = useAppStore()
+const orders = computed(() => store.orders)
 const formVisible = ref(false)
 const editingId = ref<string | null>(null)
 
@@ -161,20 +156,18 @@ function save() {
   if (editingId.value) {
     const existing = orders.value.find((x) => x.id === editingId.value)
     if (existing) {
-      orders.value = updateLocalOrder(orders.value, { ...existing, ...data })
+      store.updateOrder({ ...existing, ...data })
     }
   } else {
-    orders.value = [...orders.value, createLocalOrder(data)]
+    store.addOrder(createLocalOrder(data))
   }
-  saveOrders(orders.value)
   formVisible.value = false
 }
 
 function remove() {
   if (!editingId.value) return
   if (!confirm(`确定删除「${form.catName}」这个订单?`)) return
-  orders.value = deleteLocalOrder(orders.value, editingId.value)
-  saveOrders(orders.value)
+  store.removeOrder(editingId.value)
   formVisible.value = false
 }
 
