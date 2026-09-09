@@ -10,11 +10,12 @@ import { useAppStore } from '@/stores/app'
 
 const store = useAppStore()
 
+const BASE = import.meta.env.BASE_URL // './' ,适配安卓 WebView 相对加载
 const TABS = [
-  { key: 'home', label: '首页', icon: '🏠', component: HomeTab },
-  { key: 'manage', label: '管理', icon: '🛠️', component: ManageTab },
-  { key: 'stats', label: '账单', icon: '📊', component: StatsTab },
-  { key: 'mine', label: '我的', icon: '👤', component: MineTab },
+  { key: 'home', label: '首页', icon: `${BASE}icons/home.png`, component: HomeTab },
+  { key: 'manage', label: '管理', icon: `${BASE}icons/manage.png`, component: ManageTab },
+  { key: 'stats', label: '账单', icon: `${BASE}icons/bill.png`, component: StatsTab },
+  { key: 'mine', label: '我的', icon: `${BASE}icons/mine.png`, component: MineTab },
 ]
 
 const showWelcome = ref(true)
@@ -58,7 +59,7 @@ setTimeout(() => {
         :class="{ active: store.activeTab === t.key }"
         @click="switchTab(t.key)"
       >
-        <span class="tab-icon">{{ t.icon }}</span>
+        <img class="tab-icon-img" :src="t.icon" alt="" />
         <span class="tab-label">{{ t.label }}</span>
       </div>
     </nav>
@@ -132,10 +133,17 @@ body,
 .tab-item.active .tab-label {
   font-weight: 600;
 }
-.tab-icon {
-  font-size: 22px;
-  line-height: 1.2;
+.tab-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.55;
 }
+
+.tab-item.active .tab-icon-img {
+  opacity: 1;
+}
+
 .tab-label {
   font-size: 12px;
   line-height: 1.3;

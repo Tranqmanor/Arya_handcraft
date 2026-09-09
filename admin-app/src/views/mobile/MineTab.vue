@@ -13,7 +13,7 @@
     <template v-else>
       <!-- 头像区(点击可改昵称) -->
       <div class="profile-card">
-        <div class="avatar">🐱</div>
+        <img class="avatar" :src="`${BASE}icons/default_avatar.png`" alt="头像" />
         <div class="profile-meta">
           <div class="nickname">{{ nickname || '管理员' }}</div>
           <button class="edit-btn" @click="editName">修改昵称</button>
@@ -51,6 +51,7 @@ import { useAppStore } from '@/stores/app'
 
 
 const store = useAppStore()
+const BASE = import.meta.env.BASE_URL
 const loggedIn = ref(localStorage.getItem('arya_admin_logged') === '1')
 const loginUser = ref('admin')
 const loginPass = ref('')
@@ -180,11 +181,9 @@ function logout() {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(160deg, #eadcd9, #c9a9a6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
+  object-fit: cover;
+  background: #f0ebe6;
+  display: block;
 }
 .profile-meta {
   display: flex;
