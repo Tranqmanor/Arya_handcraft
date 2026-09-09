@@ -13,7 +13,8 @@ export default defineConfig({
   },
   base: './', // 移动端/WebView 以相对路径加载,避免安卓壳内路径问题
   server: {
-    port: 5175,
+    host: '127.0.0.1', // 避开 ::1 解析
+    port: 5180, // 5175 常被 Windows(Hyper-V/WinNAT)保留导致 EACCES
     proxy: {
       // 开发环境代理到本地 FastAPI
       '/api': {
