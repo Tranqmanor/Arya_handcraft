@@ -4,9 +4,9 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores/app'
 import { adminLogin } from '@/api/online'
-import aryapng from '@/assets/aryapng.png'
 
 const store = useAppStore()
+const BASE = import.meta.env.BASE_URL
 const loginUser = ref('admin')
 const loginPass = ref('')
 
@@ -46,7 +46,7 @@ async function tryOnlineLogin(pass: string) {
 <template>
   <div class="login-page">
     <div class="login-brand">
-      <img :src="aryapng" alt="Arya手作" />
+      <img :src="`${BASE}icons/logo.png`" alt="Arya手作" />
       <div>
         <b>Arya手作管理端</b>
         <span>订单 · 排队 · 账单</span>
