@@ -12,6 +12,8 @@ dependencies:
   # 固定版本,避免 ^ 解析到未验证的新版引入不确定性(4.8.0 含 setWebContentsDebuggingEnabled)
   webview_flutter: 4.8.0
   webview_flutter_android: 3.16.2
+  # 原生文件选择桥(旧版 webview_flutter 不转发 onShowFileChooser,input type=file 无响应)
+  file_picker: 8.0.7
   path_provider: 2.1.4
   share_plus: 9.0.0
 

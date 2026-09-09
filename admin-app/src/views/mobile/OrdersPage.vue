@@ -45,7 +45,7 @@
         <div class="field-row"><label>猫咪名字</label><input v-model="form.catName" placeholder="必填" /></div>
         <div class="field-row">
           <label>猫咪照片</label>
-          <div class="photo-picker" @click="fileInput?.click()">
+          <div class="photo-picker" @click="pickPhoto">
             <img v-if="form.catPhoto" :src="form.catPhoto" alt="" />
             <div v-else class="photo-empty">＋<span>上传照片</span></div>
             <button v-if="form.catPhoto" class="photo-remove" @click.stop="form.catPhoto = ''">×</button>
@@ -110,7 +110,8 @@ import { computed, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { createLocalOrder, queueIndexOf, timeMs } from '@/local/store'
-import { compressImageToDataUrl } from '@/local/img'
+import { compressImageToDataUrl, compressFromDataUrl } from '@/local/img'
+import { hasNativeFilePicker, pickNativeFile, dataUrlToText } from '@/local/native-file'
 import { useAppStore } from '@/stores/app'
 import { downloadCsv, ordersToCsv, ordersFromCsv } from '@/local/csv'
 import { PAYMENT_COLOR, PAYMENT_LABEL, paymentStatusOf, type LocalOrder } from '@/local/types'
@@ -136,6 +137,20 @@ const form = reactive({
 
 const fileInput = ref<HTMLInputElement | null>(null)
 
+/** 选照片:App 壳走原生桥;浏览器走 input */
+async function pickPhoto() {
+  if (hasNativeFilePicker()) {
+    try {
+      const f = await pickNativeFile('image')
+      if (f) form.catPhoto = await compressFromDataUrl(f.dataUrl)
+    } catch {
+      ElMessage.error('照片读取失败,请换一张试试')
+    }
+    return
+  }
+  fileInput.value?.click()
+}
+
 async function onPhotoPicked(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
@@ -152,6 +167,15 @@ async function onPhotoPicked(e: Event) {
 const importInput = ref<HTMLInputElement | null>(null)
 
 function importCsv() {
+  if (hasNativeFilePicker()) {
+    // App 壳:原生 SAF 选择器(无需存储权限)
+    void (async () => {
+      const f = await pickNativeFile('csv')
+      if (!f) return
+      doImportText(dataUrlToText(f.dataUrl))
+    })()
+    return
+  }
   importInput.value?.click()
 }
 
@@ -160,13 +184,14 @@ async function onImportFile(e: Event) {
   const file = input.files?.[0]
   input.value = ''
   if (!file) return
-  let text = ''
   try {
-    text = await file.text()
+    doImportText(await file.text())
   } catch {
     ElMessage.error('文件读取失败')
-    return
   }
+}
+
+async function doImportText(text: string) {
   const parsed = ordersFromCsv(text)
   if (parsed.length === 0) {
     ElMessage.error('未识别到订单:请使用本 App 导出的 CSV(列名需一致,且含「猫咪名字」「付款状态」列)')
