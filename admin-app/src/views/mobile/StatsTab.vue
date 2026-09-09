@@ -2,56 +2,38 @@
   <div class="tab-page">
     <div class="page-title">📊 账单统计</div>
 
-    <!-- 总收入卡 -->
+    <!-- 总收入 = 已完成订单总价之和 + 已支付定金订单的定金之和 -->
     <div class="total-card">
       <div class="total-label">总收入金额</div>
-      <div class="total-value">¥{{ summary.totalReceived }}</div>
+      <div class="total-value">¥{{ total }}</div>
     </div>
 
     <!-- 三类钻取 -->
     <div class="stage-list">
-      <div class="stage-card" @click="openStage('final')">
+      <div v-for="v in VIEWS" :key="v.key" class="stage-card" @click="openView(v.key)">
         <div class="stage-left">
-          <span class="stage-name">尾款已支付</span>
-          <span class="stage-count">{{ customersByStage('final').length }} 位客户</span>
+          <span class="stage-name">{{ v.name }}</span>
+          <span class="stage-count">{{ rowsOf(v.key).length }} 位客户</span>
         </div>
         <div class="stage-right">
-          <span class="stage-amount">¥{{ summary.finalReceived }}</span>
-          <span class="arrow">›</span>
-        </div>
-      </div>
-      <div class="stage-card" @click="openStage('making')">
-        <div class="stage-left">
-          <span class="stage-name">制作定金已支付</span>
-          <span class="stage-count">{{ customersByStage('making').length }} 位客户</span>
-        </div>
-        <div class="stage-right">
-          <span class="stage-amount">¥{{ summary.makingReceived }}</span>
-          <span class="arrow">›</span>
-        </div>
-      </div>
-      <div class="stage-card" @click="openStage('deposit')">
-        <div class="stage-left">
-          <span class="stage-name">排队定金已支付</span>
-          <span class="stage-count">{{ customersByStage('deposit').length }} 位客户</span>
-        </div>
-        <div class="stage-right">
-          <span class="stage-amount">¥{{ summary.depositReceived }}</span>
+          <span class="stage-amount">¥{{ amountOf(v.key) }}</span>
           <span class="arrow">›</span>
         </div>
       </div>
     </div>
 
-    <!-- 钻取列表弹层 -->
-    <div v-if="activeStage" class="stage-overlay" @click.self="activeStage = null">
+    <!-- 钻取列表弹层:左微信名,右金额,点击进订单详情 -->
+    <div v-if="activeView" class="stage-overlay" @click.self="activeView = null">
       <div class="stage-panel">
-        <div class="panel-title">{{ stageTitle }} · 共 {{ currentCustomers.length }} 位 · ¥{{ currentAmount }}</div>
-        <div v-if="currentCustomers.length === 0" class="empty-tip">暂无记录</div>
-        <div v-for="c in currentCustomers" :key="c.orderId" class="customer-row" @click="goDetail()">
-          <span>{{ c.customerName }}</span>
-          <span class="arrow">›</span>
+        <div class="panel-title">
+          {{ activeViewName }} · 共 {{ currentRows.length }} 单 · ¥{{ amountOf(activeView) }}
         </div>
-        <button class="close-btn" @click="activeStage = null">关闭</button>
+        <div v-if="currentRows.length === 0" class="empty-tip">暂无记录</div>
+        <div v-for="c in currentRows" :key="c.orderId" class="customer-row" @click="goDetail(c.orderId)">
+          <span>{{ c.customerName }}</span>
+          <span class="row-right"><b>¥{{ c.amount }}</b><span class="arrow">›</span></span>
+        </div>
+        <button class="close-btn" @click="activeView = null">关闭</button>
       </div>
     </div>
   </div>
@@ -60,43 +42,43 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import { customersWith, summarize } from '@/local/bills'
+import { billRows, billTotal, totalReceived, type BillView } from '@/local/bills'
 import { useAppStore } from '@/stores/app'
 
 const store = useAppStore()
-const activeStage = ref<'deposit' | 'making' | 'final' | null>(null)
 
-const summary = computed(() => summarize(store.orders))
+const VIEWS: { key: BillView; name: string }[] = [
+  { key: 'completed', name: '已完成订单' },
+  { key: 'deposit', name: '已支付定金' },
+  { key: 'unpaid_final', name: '未支付尾款' },
+]
 
-function customersByStage(stage: 'deposit' | 'making' | 'final') {
-  return customersWith(store.orders, stage)
+const activeView = ref<BillView | null>(null)
+
+const total = computed(() => totalReceived(store.orders))
+
+function rowsOf(view: BillView) {
+  return billRows(store.orders, view)
 }
 
-const stageTitle = computed(() => {
-  const map = { deposit: '排队定金已支付', making: '制作定金已支付', final: '尾款已支付' }
-  return activeStage.value ? map[activeStage.value] : ''
-})
+function amountOf(view: BillView) {
+  return billTotal(store.orders, view)
+}
 
-const currentCustomers = computed(() =>
-  activeStage.value ? customersByStage(activeStage.value) : [],
+const activeViewName = computed(() =>
+  activeView.value ? VIEWS.find((v) => v.key === activeView.value)?.name || '' : '',
 )
 
-const currentAmount = computed(() => {
-  if (!activeStage.value) return 0
-  return {
-    deposit: summary.value.depositReceived,
-    making: summary.value.makingReceived,
-    final: summary.value.finalReceived,
-  }[activeStage.value]
-})
+const currentRows = computed(() => (activeView.value ? rowsOf(activeView.value) : []))
 
-function openStage(stage: 'deposit' | 'making' | 'final') {
-  activeStage.value = stage
+function openView(view: BillView) {
+  activeView.value = view
 }
 
-function goDetail() {
-  // 切到管理 Tab 的订单列表,由用户在列表中定位该单
-  store.goto('manage', 'orders')
+function goDetail(orderId: string) {
+  // 跳到订单页并自动打开该订单详情
+  activeView.value = null
+  store.focusOrder(orderId)
 }
 </script>
 
@@ -208,6 +190,15 @@ function goDetail() {
 }
 .customer-row:last-of-type {
   border-bottom: none;
+}
+.row-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.row-right b {
+  color: #a98b84;
+  font-size: 15px;
 }
 .arrow {
   color: #d9cfc9;

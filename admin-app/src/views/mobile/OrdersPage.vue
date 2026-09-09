@@ -18,17 +18,20 @@
       <div v-for="o in displayOrders" :key="o.id" class="order-card" @click="openEdit(o)">
         <div class="card-body">
           <div class="cat-photo">
-            <img v-if="o.catPhoto" :src="o.catPhoto" alt="" />
+            <img v-if="o.catPhotos && o.catPhotos.length" :src="o.catPhotos[0]" alt="" />
             <span v-else class="photo-ph">🐾</span>
           </div>
           <div class="card-main">
             <div class="card-head">
-              <span class="cat">{{ o.catName }}</span>
+              <span class="cat">{{ o.catName || o.wechatName || o.customerName || '订单' }}</span>
               <span class="status" :style="{ color: colorOf(o) }">{{ labelOf(o) }}</span>
             </div>
             <div class="card-sub">
               <span>{{ o.wechatName || o.customerName }}</span>
-              <span v-if="queueIndexOf(orders, o.id) > 0">排队 #{{ queueIndexOf(orders, o.id) }}</span>
+              <span class="sub-right">
+                <em v-if="(o.catCount || 0) > 1" class="cnt">{{ o.catCount }}只猫</em>
+                <span v-if="queueIndexOf(orders, o.id) > 0">排队 #{{ queueIndexOf(orders, o.id) }}</span>
+              </span>
             </div>
           </div>
         </div>
@@ -42,15 +45,21 @@
 
         <div class="field-row"><label>客户微信名</label><input v-model="form.wechatName" placeholder="必填(首页排队展示)" /></div>
         <div class="field-row"><label>客户姓名</label><input v-model="form.customerName" placeholder="选填" /></div>
-        <div class="field-row"><label>猫咪名字</label><input v-model="form.catName" placeholder="必填" /></div>
+        <div class="field-row"><label>猫咪名字</label><input v-model="form.catName" placeholder="选填(为空时首页排队不展示)" /></div>
         <div class="field-row">
-          <label>猫咪照片</label>
-          <div class="photo-picker" @click="pickPhoto">
-            <img v-if="form.catPhoto" :src="form.catPhoto" alt="" />
-            <div v-else class="photo-empty">＋<span>上传照片</span></div>
-            <button v-if="form.catPhoto" class="photo-remove" @click.stop="form.catPhoto = ''">×</button>
+          <label>猫咪数量</label>
+          <el-input-number v-model="form.catCount" :min="1" :max="99" :step="1" style="width: 100%" />
+        </div>
+        <div class="field-row">
+          <label>猫咪照片(可多张,一猫一张)</label>
+          <div class="photo-grid">
+            <div v-for="(p, i) in form.catPhotos" :key="i" class="photo-cell">
+              <img :src="p" alt="" />
+              <button class="photo-remove" @click.stop="form.catPhotos.splice(i, 1)">×</button>
+            </div>
+            <div class="photo-cell photo-add" @click="pickPhoto">＋<span>上传</span></div>
           </div>
-          <input ref="fileInput" type="file" accept="image/*" hidden @change="onPhotoPicked" />
+          <input ref="fileInput" type="file" accept="image/*" multiple hidden @change="onPhotoPicked" />
         </div>
         <div class="field-row">
           <label>下单时间</label>
@@ -67,21 +76,17 @@
         <div class="field-row"><label>邮寄地址</label><input v-model="form.address" placeholder="选填" /></div>
         <div class="field-row"><label>备注</label><input v-model="form.note" placeholder="选填" /></div>
 
-        <div class="field-row">
-          <label>订单总价(元)</label>
-          <input v-model.number="form.totalPrice" type="number" min="0" placeholder="输入总价,自动计算各期款项" />
-        </div>
         <div class="amount-grid">
           <div class="amount-cell">
-            <label>排队定金</label>
-            <div class="ro-box">¥{{ depositDue }}</div>
+            <label>订单总价(元)</label>
+            <input v-model.number="form.totalPrice" type="number" min="0" placeholder="总价" />
           </div>
           <div class="amount-cell">
-            <label>制作定金</label>
-            <div class="ro-box">¥{{ makingDue }}</div>
+            <label>定金(元,手输)</label>
+            <input v-model.number="form.deposit" type="number" min="0" placeholder="定金" />
           </div>
           <div class="amount-cell">
-            <label>尾款</label>
+            <label>尾款(自动)</label>
             <div class="ro-box">¥{{ finalDue }}</div>
           </div>
         </div>
@@ -89,9 +94,8 @@
         <div class="field-row">
           <label>付款状态(单选,再点一次可取消)</label>
           <div class="pay-btns">
-            <button :class="['pay-btn', { on: payStatus === 'deposit' }]" @click="pickPay('deposit')">排队定金已付</button>
-            <button :class="['pay-btn', { on: payStatus === 'making' }]" @click="pickPay('making')">制作定金已付</button>
-            <button :class="['pay-btn', { on: payStatus === 'final' }]" @click="pickPay('final')">尾款已付</button>
+            <button :class="['pay-btn', { on: payStatus === 'deposit' }]" @click="pickPay('deposit')">定金已支付</button>
+            <button :class="['pay-btn', { on: payStatus === 'final' }]" @click="pickPay('final')">尾款已支付</button>
           </div>
         </div>
 
@@ -99,14 +103,14 @@
           <button class="btn ghost" @click="formVisible = false">取消</button>
           <button class="btn primary" @click="save">保存</button>
         </div>
-        <button v-if="editingId" class="btn del" @click="remove()">删除该订单</button>
+        <button v-if="editingId" class="btn del" @click="remove">删除该订单</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { createLocalOrder, queueIndexOf, timeMs } from '@/local/store'
@@ -127,22 +131,50 @@ const form = reactive({
   wechatName: '',
   customerName: '',
   catName: '',
-  catPhoto: '',
+  catCount: 1,
+  catPhotos: [] as string[],
   orderTime: '' as string,
   phone: '',
   address: '',
   note: '',
   totalPrice: 0,
+  deposit: 0,
 })
+
+/** 付款状态单选:未付 / 定金 / 尾款(保存时映射两布尔) */
+const payStatus = ref<'none' | 'deposit' | 'final'>('none')
+
+function pickPay(s: 'deposit' | 'final') {
+  payStatus.value = payStatus.value === s ? 'none' : s
+}
+
+// —— 金额:定金手动输入,尾款 = 总价 − 定金 ——
+const finalDue = computed(() => {
+  const t = Number(form.totalPrice) || 0
+  const d = Number(form.deposit) || 0
+  return Math.max(0, t - d)
+})
+
+const displayOrders = computed(() =>
+  [...orders.value].sort((a, b) => timeMs(b) - timeMs(a)),
+)
+
+function labelOf(o: LocalOrder) {
+  return PAYMENT_LABEL[paymentStatusOf(o)]
+}
+
+function colorOf(o: LocalOrder) {
+  return PAYMENT_COLOR[paymentStatusOf(o)]
+}
 
 const fileInput = ref<HTMLInputElement | null>(null)
 
-/** 选照片:App 壳走原生桥;浏览器走 input */
+/** 选照片:App 壳走原生桥(每次一张追加);浏览器 input 支持多选 */
 async function pickPhoto() {
   if (hasNativeFilePicker()) {
     try {
       const f = await pickNativeFile('image')
-      if (f) form.catPhoto = await compressFromDataUrl(f.dataUrl)
+      if (f) form.catPhotos.push(await compressFromDataUrl(f.dataUrl))
     } catch {
       ElMessage.error('照片读取失败,请换一张试试')
     }
@@ -153,16 +185,17 @@ async function pickPhoto() {
 
 async function onPhotoPicked(e: Event) {
   const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
+  const files = Array.from(input.files ?? [])
+  if (files.length === 0) return
   try {
-    form.catPhoto = await compressImageToDataUrl(file)
+    for (const f of files) {
+      form.catPhotos.push(await compressImageToDataUrl(f))
+    }
   } catch {
-    ElMessage.error('照片读取失败,请换一张试试')
+    ElMessage.error('部分照片读取失败')
   }
   input.value = '' // 允许连续选同一文件
 }
-
 // —— CSV 导入 ——
 const importInput = ref<HTMLInputElement | null>(null)
 
@@ -194,7 +227,7 @@ async function onImportFile(e: Event) {
 async function doImportText(text: string) {
   const parsed = ordersFromCsv(text)
   if (parsed.length === 0) {
-    ElMessage.error('未识别到订单:请使用本 App 导出的 CSV(列名需一致,且含「猫咪名字」「付款状态」列)')
+    ElMessage.error('未识别到订单:请使用本 App 导出的 CSV(需含「付款状态」等列)')
     return
   }
   try {
@@ -210,35 +243,21 @@ async function doImportText(text: string) {
   ElMessage.success(`已导入 ${parsed.length} 条订单`)
 }
 
-/** 付款状态单选:未付 / 排队定金 / 制作定金 / 尾款(递进,保存时映射三布尔) */
-const payStatus = ref<'none' | 'deposit' | 'making' | 'final'>('none')
-
-function pickPay(s: 'deposit' | 'making' | 'final') {
-  payStatus.value = payStatus.value === s ? 'none' : s
+function goBack() {
+  emit('back')
 }
 
-// —— 自动计算:排队定金固定 300;总价≥1000 时制作定金 = floor10(总价×30% − 300),否则 0;尾款 = 余额 ——
-const depositDue = computed(() => 300)
-const makingDue = computed(() => {
-  const t = Number(form.totalPrice) || 0
-  if (t < 1000) return 0
-  return Math.floor((t * 0.3 - 300) / 10) * 10
-})
-const finalDue = computed(() => {
-  const t = Number(form.totalPrice) || 0
-  return Math.max(0, t - depositDue.value - makingDue.value)
-})
-
-const displayOrders = computed(() =>
-  [...orders.value].sort((a, b) => timeMs(b) - timeMs(a)),
-)
-
-function labelOf(o: LocalOrder) {
-  return PAYMENT_LABEL[paymentStatusOf(o)]
-}
-
-function colorOf(o: LocalOrder) {
-  return PAYMENT_COLOR[paymentStatusOf(o)]
+function exportCsv() {
+  if (orders.value.length === 0) {
+    ElMessage.warning('暂无订单可导出')
+    return
+  }
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  downloadCsv(
+    `arya订单_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.csv`,
+    ordersToCsv(displayOrders.value),
+  )
 }
 
 function openCreate() {
@@ -247,12 +266,14 @@ function openCreate() {
     wechatName: '',
     customerName: '',
     catName: '',
-    catPhoto: '',
+    catCount: 1,
+    catPhotos: [] as string[],
     orderTime: '',
     phone: '',
     address: '',
     note: '',
     totalPrice: 0,
+    deposit: 0,
   })
   payStatus.value = 'none'
   formVisible.value = true
@@ -263,25 +284,23 @@ function openEdit(o: LocalOrder) {
   Object.assign(form, {
     wechatName: o.wechatName || '',
     customerName: o.customerName,
-    catName: o.catName,
-    catPhoto: o.catPhoto || '',
+    catName: o.catName || '',
+    catCount: o.catCount && o.catCount > 0 ? o.catCount : 1,
+    catPhotos: [...(o.catPhotos || [])],
     orderTime: o.orderTime || o.createdAt,
     phone: o.phone || '',
     address: o.address || '',
     note: o.note || '',
-    totalPrice: o.totalPrice ?? o.depositDue + o.makingDue + o.finalDue,
+    totalPrice: o.totalPrice ?? o.depositDue + o.finalDue,
+    deposit: o.depositDue,
   })
-  payStatus.value = o.finalPaid ? 'final' : o.makingPaid ? 'making' : o.depositPaid ? 'deposit' : 'none'
+  payStatus.value = o.finalPaid ? 'final' : o.depositPaid ? 'deposit' : 'none'
   formVisible.value = true
 }
 
 function save() {
   if (!form.wechatName.trim()) {
     ElMessage.warning('请填写客户微信名')
-    return
-  }
-  if (!form.catName.trim()) {
-    ElMessage.warning('请填写猫咪名字')
     return
   }
   if (!form.orderTime) {
@@ -293,21 +312,24 @@ function save() {
     ElMessage.warning('请填写订单总价')
     return
   }
+  const deposit = Math.max(0, Number(form.deposit) || 0)
+  if (deposit > total) {
+    ElMessage.warning('定金不能大于订单总价')
+    return
+  }
   const data = {
     wechatName: form.wechatName.trim(),
     customerName: form.customerName.trim(),
-    catName: form.catName.trim(),
-    catPhoto: form.catPhoto || undefined,
+    catName: form.catName.trim() || undefined,
+    catCount: Number(form.catCount) > 1 ? Number(form.catCount) : undefined,
+    catPhotos: form.catPhotos.length ? [...form.catPhotos] : undefined,
     orderTime: form.orderTime,
     phone: form.phone.trim(),
     address: form.address.trim(),
     note: form.note.trim(),
-    depositDue: depositDue.value,
-    makingDue: makingDue.value,
-    finalDue: finalDue.value,
-    // 单选状态 → 递进布尔(付款按顺序发生)
+    depositDue: deposit,
+    finalDue: Math.max(0, total - deposit),
     depositPaid: payStatus.value !== 'none',
-    makingPaid: payStatus.value === 'making' || payStatus.value === 'final',
     finalPaid: payStatus.value === 'final',
   }
   // 先关闭弹层再落库(本地存储为同步瞬时操作,保证点击立即有响应)
@@ -326,7 +348,7 @@ function save() {
 async function remove() {
   if (!editingId.value) return
   try {
-    await ElMessageBox.confirm(`确定删除「${form.catName}」这个订单?`, '删除确认', {
+    await ElMessageBox.confirm(`确定删除「${form.catName || form.wechatName}」这个订单?`, '删除确认', {
       type: 'warning',
       confirmButtonText: '删除',
       cancelButtonText: '取消',
@@ -339,19 +361,19 @@ async function remove() {
   ElMessage.success('已删除')
 }
 
-function exportCsv() {
-  downloadCsv(`订单列表_${new Date().toISOString().slice(0, 10)}.csv`, ordersToCsv(orders.value))
+// —— 账单钻取跳转:自动打开目标订单详情 ——
+function tryFocusPending() {
+  const id = store.focusOrderId
+  if (!id) return
+  store.focusOrderId = null
+  const o = orders.value.find((x) => x.id === id)
+  if (o) openEdit(o)
 }
-
-function goBack() {
-  emit('back')
-}
+onMounted(tryFocusPending)
+watch(() => store.focusOrderId, tryFocusPending)
 </script>
 
 <style scoped>
-.orders-page {
-  padding: 16px;
-}
 .top-bar {
   display: flex;
   align-items: center;
@@ -458,7 +480,19 @@ function goBack() {
   font-size: 13px;
   color: #b9b1ac;
 }
-
+.sub-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cnt {
+  font-style: normal;
+  background: #f5efe8;
+  color: #a98b84;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 11px;
+}
 /* 表单 */
 .form-overlay {
   position: fixed;
@@ -501,51 +535,55 @@ function goBack() {
   background: #faf6f0;
 }
 
-/* 表单内照片选择器 */
-.photo-picker {
+/* 多张照片网格 */
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.photo-cell {
   position: relative;
-  width: 92px;
-  height: 92px;
-  border-radius: 14px;
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
   overflow: hidden;
   background: #faf6f0;
-  border: 1px dashed #e0d6cd;
-  cursor: pointer;
 }
-.photo-picker img {
+.photo-cell img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
-.photo-empty {
-  width: 100%;
-  height: 100%;
+.photo-add {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
+  border: 1px dashed #e0d6cd;
   color: #b9b1ac;
-  font-size: 24px;
+  font-size: 22px;
+  cursor: pointer;
 }
-.photo-empty span {
+.photo-add span {
   font-size: 11px;
 }
 .photo-remove {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 22px;
-  height: 22px;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
   border: none;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.5);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
   cursor: pointer;
 }
+
 .amount-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -568,7 +606,6 @@ function goBack() {
   font-size: 14px;
   background: #faf6f0;
 }
-
 /* 自动计算的只读金额框 */
 .ro-box {
   padding: 10px 8px;

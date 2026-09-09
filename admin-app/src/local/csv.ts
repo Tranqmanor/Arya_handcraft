@@ -4,8 +4,8 @@ import { genId, nowIso } from './store'
 
 /** 导出与导入共用的订单列头(列名一致即可识别,列顺序不限) */
 export const ORDERS_CSV_HEADER = [
-  '序号', '客户微信名', '客户姓名', '猫咪名字', '下单时间',
-  '排队定金', '制作定金', '尾款', '付款状态', '电话', '地址', '备注',
+  '序号', '客户微信名', '客户姓名', '猫咪名字', '猫咪数量', '下单时间',
+  '定金', '尾款', '付款状态', '电话', '地址', '备注',
 ]
 
 export function ordersToCsv(orders: LocalOrder[]): string {
@@ -13,10 +13,10 @@ export function ordersToCsv(orders: LocalOrder[]): string {
     String(i + 1),
     o.wechatName || '',
     o.customerName,
-    o.catName,
+    o.catName || '',
+    String(o.catCount && o.catCount > 1 ? o.catCount : 1),
     formatDate(o.orderTime || o.createdAt),
     String(o.depositDue),
-    String(o.makingDue),
     String(o.finalDue),
     statusText(o),
     o.phone || '',
@@ -27,16 +27,28 @@ export function ordersToCsv(orders: LocalOrder[]): string {
 }
 
 export function queueToCsv(orders: LocalOrder[], queueIndexFn: (id: string) => number): string {
-  const header = ['排队编号', '客户姓名', '猫咪名字', '付款状态']
+  const header = ['排队编号', '客户微信名', '猫咪名字', '付款状态']
   const rows = orders
     .filter((o) => queueIndexFn(o.id) > 0)
-    .map((o) => [String(queueIndexFn(o.id)), o.customerName, o.catName, statusText(o)])
+    .map((o) => [String(queueIndexFn(o.id)), o.wechatName || o.customerName, o.catName || '', statusText(o)])
   return [header, ...rows].map((r) => r.map(esc).join(',')).join('\r\n')
 }
 
 function esc(v: string): string {
   if (/[",\n]/.test(v)) return `"${v.replace(/"/g, '""')}"`
   return v
+}
+
+function statusText(o: LocalOrder): string {
+  if (o.finalPaid) return '尾款已支付'
+  if (o.depositPaid) return '定金已支付'
+  return '未付款'
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 // ———— CSV 导入 ————
@@ -84,39 +96,49 @@ export function parseCsv(text: string): string[][] {
 
 /**
  * 从导出的 CSV 文本解析订单(按列名识别,列顺序不限;缺列给默认值)。
- * 识别失败(无「猫咪名字」「付款状态」列)返回空数组。
- * 注意:猫咪照片不随 CSV 导出,导入后照片为空。
+ * 兼容旧三阶段导出格式:「排队定金」列视同定金,「制作定金」列并入尾款。
+ * 识别失败(无「付款状态」列)返回空数组。猫咪照片不随 CSV 导出,导入后为空。
  */
 export function ordersFromCsv(text: string): LocalOrder[] {
   const rows = parseCsv(text)
   if (rows.length < 2) return []
   const header = rows[0].map((h) => h.trim())
-  const col = (name: string) => header.indexOf(name)
+  const col = (...names: string[]) => {
+    for (const n of names) {
+      const i = header.indexOf(n)
+      if (i >= 0) return i
+    }
+    return -1
+  }
   const iWechat = col('客户微信名')
   const iCustomer = col('客户姓名')
   const iCat = col('猫咪名字')
+  const iCount = col('猫咪数量')
   const iTime = col('下单时间')
-  const iDep = col('排队定金')
-  const iMak = col('制作定金')
+  const iDep = col('定金', '排队定金')
+  const iMak = col('制作定金') // 旧格式:并入尾款
   const iFin = col('尾款')
   const iPay = col('付款状态')
   const iPhone = col('电话')
   const iAddr = col('地址')
   const iNote = col('备注')
-  if (iCat === -1 || iPay === -1) return []
+  if (iPay === -1) return []
 
   const out: LocalOrder[] = []
   for (const r of rows.slice(1)) {
     const g = (i: number) => (i >= 0 ? (r[i] ?? '').trim() : '')
+    const wechatName = g(iWechat)
+    const customerName = g(iCustomer)
     const catName = g(iCat)
-    if (!catName) continue
+    if (!wechatName && !customerName && !catName) continue
 
     const depositDue = Number(g(iDep)) || 0
-    const makingDue = Number(g(iMak)) || 0
-    const finalDue = Number(g(iFin)) || 0
+    const makDue = iMak >= 0 ? Number(g(iMak)) || 0 : 0
+    const finalDue = (Number(g(iFin)) || 0) + makDue
+    const catCount = Number(g(iCount)) || 0
     const status = g(iPay)
-    const depositPaid = status.includes('排队') || status.includes('制作') || status.includes('尾款')
-    const makingPaid = status.includes('制作') || status.includes('尾款')
+    // 定金已付:状态含「定金」(排队定金/制作定金/定金);尾款已付:状态含「尾款」
+    const depositPaid = status.includes('定金')
     const finalPaid = status.includes('尾款')
 
     // 下单时间:"YYYY-MM-DD HH:mm" → 本地 "YYYY-MM-DDTHH:mm:ss"(与表单选择器格式一致)
@@ -134,15 +156,14 @@ export function ordersFromCsv(text: string): LocalOrder[] {
       id: genId(),
       createdAt: nowIso(),
       orderTime,
-      totalPrice: depositDue + makingDue + finalDue,
-      wechatName: g(iWechat) || undefined,
-      customerName: g(iCustomer),
-      catName,
+      totalPrice: depositDue + finalDue,
+      wechatName: wechatName || undefined,
+      customerName,
+      catName: catName || undefined,
+      catCount: catCount > 1 ? catCount : undefined,
       depositDue,
-      makingDue,
       finalDue,
       depositPaid,
-      makingPaid,
       finalPaid,
       phone: g(iPhone) || undefined,
       address: g(iAddr) || undefined,
@@ -150,19 +171,6 @@ export function ordersFromCsv(text: string): LocalOrder[] {
     })
   }
   return out
-}
-
-function statusText(o: LocalOrder): string {
-  if (o.finalPaid) return '尾款已支付'
-  if (o.makingPaid) return '制作定金已支付'
-  if (o.depositPaid) return '排队定金已支付'
-  return '未付款'
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 /**

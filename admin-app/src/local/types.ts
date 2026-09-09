@@ -1,5 +1,5 @@
 // 本地订单模型(后台管理 App 手动录入)
-export type PaymentStatus = 'deposit_paid' | 'making_paid' | 'final_paid' | 'none'
+export type PaymentStatus = 'deposit_paid' | 'final_paid' | 'none'
 
 export interface LocalOrder {
   id: string
@@ -15,43 +15,42 @@ export interface LocalOrder {
 
   /** 客户姓名(选填) */
   customerName: string
-  catName: string
-  /** 猫咪照片(压缩后的 dataURL,选填) */
-  catPhoto?: string
+  /** 猫咪名字(选填;为空时首页排队不展示该行) */
+  catName?: string
+  /** 猫咪数量(选填,默认 1) */
+  catCount?: number
+  /** 猫咪照片列表(压缩后的 dataURL,可多张,一单多猫场景) */
+  catPhotos?: string[]
   phone?: string
   address?: string
   requirement?: string
 
-  /** 三阶段应付(元) */
+  /** 定金(手动输入,元) */
   depositDue: number
-  makingDue: number
+  /** 尾款 = 总价 − 定金(元) */
   finalDue: number
-  /** 三阶段已付标志(驱动排队/账单) */
+  /** 两阶段已付标志(驱动排队/账单) */
   depositPaid: boolean
-  makingPaid: boolean
   finalPaid: boolean
 
   note?: string
 }
 
-// 付款状态派生:由三阶段已付标志推出当前资金状态
+// 付款状态派生:由两阶段已付标志推出当前资金状态
 export function paymentStatusOf(o: LocalOrder): PaymentStatus {
   if (o.finalPaid) return 'final_paid'
-  if (o.makingPaid) return 'making_paid'
   if (o.depositPaid) return 'deposit_paid'
   return 'none'
 }
 
 export const PAYMENT_LABEL: Record<PaymentStatus, string> = {
   none: '未付款',
-  deposit_paid: '排队定金已支付',
-  making_paid: '制作定金已支付',
+  deposit_paid: '定金已支付',
   final_paid: '尾款已支付',
 }
 
 export const PAYMENT_COLOR: Record<PaymentStatus, string> = {
   none: '#b9b1ac',
   deposit_paid: '#a98b84',
-  making_paid: '#9fb0b5',
   final_paid: '#6a9955',
 }

@@ -33,7 +33,7 @@
 import { computed, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-import { summarize } from '@/local/bills'
+import { totalReceived } from '@/local/bills'
 import { useAppStore } from '@/stores/app'
 
 
@@ -41,7 +41,7 @@ const store = useAppStore()
 const BASE = import.meta.env.BASE_URL
 const nickname = ref(localStorage.getItem('arya_admin_nickname') || '')
 
-const totalIncome = computed(() => summarize(store.orders).totalReceived)
+const totalIncome = computed(() => totalReceived(store.orders))
 
 async function editName() {
   try {

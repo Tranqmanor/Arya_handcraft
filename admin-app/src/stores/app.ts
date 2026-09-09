@@ -18,11 +18,13 @@ export const useAppStore = defineStore('app', {
     activeTab: 'home' as TabKey,
     /** 管理员登录态(全局门禁) */
     loggedIn: localStorage.getItem('arya_admin_logged') === '1',
+    /** 从账单钻取跳转时,订单页需自动打开详情的订单 id */
+    focusOrderId: null as string | null,
   }),
   getters: {
-    /** 排队中订单(排队定金/制作定金已付、尾款未付),按录入顺序 */
+    /** 排队中订单(定金已付、尾款未付),按下单时间序 */
     queued(state): LocalOrder[] {
-      return state.orders.filter((o) => (o.depositPaid || o.makingPaid) && !o.finalPaid)
+      return state.orders.filter((o) => o.depositPaid && !o.finalPaid)
     },
   },
   actions: {
@@ -52,6 +54,11 @@ export const useAppStore = defineStore('app', {
     goto(tab: TabKey, page: AppPage = 'tabs') {
       this.activeTab = tab
       this.page = page
+    },
+    /** 跳到订单页并自动打开某订单详情(账单钻取用) */
+    focusOrder(id: string) {
+      this.focusOrderId = id
+      this.goto('manage', 'orders')
     },
     login() {
       this.loggedIn = true

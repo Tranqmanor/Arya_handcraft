@@ -7,10 +7,39 @@ export function loadOrders(): LocalOrder[] {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return []
-    return JSON.parse(raw) as LocalOrder[]
+    const arr = JSON.parse(raw) as LocalOrder[]
+    let migrated = false
+    const out = arr.map((o) => {
+      const r = normalizeOrder(o)
+      if (r !== o) migrated = true
+      return r
+    })
+    if (migrated) localStorage.setItem(KEY, JSON.stringify(out))
+    return out
   } catch {
     return []
   }
+}
+
+/** 旧三阶段数据 → 两阶段模型:制作定金并入尾款,单图升为图列表 */
+function normalizeOrder(o: LocalOrder): LocalOrder {
+  const any = o as unknown as Record<string, unknown>
+  const hasLegacy = any.makingDue != null || any.makingPaid != null || any.catPhoto != null
+  if (!hasLegacy) return o
+  const makDue = Number(any.makingDue) || 0
+  const makPaid = any.makingPaid === true
+  const next = {
+    ...o,
+    depositPaid: !!o.depositPaid || makPaid,
+    finalDue: (Number(o.finalDue) || 0) + makDue,
+  } as Record<string, unknown>
+  if (typeof any.catPhoto === 'string' && any.catPhoto) {
+    next.catPhotos = [any.catPhoto, ...(Array.isArray(o.catPhotos) ? o.catPhotos : [])]
+  }
+  delete next.makingDue
+  delete next.makingPaid
+  delete next.catPhoto
+  return next as unknown as LocalOrder
 }
 
 export function saveOrders(orders: LocalOrder[]) {
@@ -42,13 +71,13 @@ export function updateLocalOrder(orders: LocalOrder[], updated: LocalOrder): Loc
 }
 
 /**
- * 排队列表:付款状态 ∈ {排队定金已付, 制作定金已付} 且尾款未付。
- * 排序:手动 queueNo 优先,否则按 createdAt 升序。
- * 即「尾款已支付即出队,后续自动进位」。
+ * 排队列表:定金已付且尾款未付。
+ * 排序:手动 queueNo 优先,否则按下单时间升序。
+ * 即「尾款已支付即出队,后面订单自动进位」。
  */
 export function queuedOrders(orders: LocalOrder[]): LocalOrder[] {
   return orders
-    .filter((o) => (o.depositPaid || o.makingPaid) && !o.finalPaid)
+    .filter((o) => o.depositPaid && !o.finalPaid)
     .sort((a, b) => sortKey(a) - sortKey(b))
 }
 

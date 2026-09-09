@@ -16,7 +16,7 @@
       >
         <div class="q-badge">{{ idx + 1 }}</div>
         <div class="cat-photo">
-          <img v-if="o.catPhoto" :src="o.catPhoto" alt="" />
+          <img v-if="o.catPhotos && o.catPhotos.length" :src="o.catPhotos[0]" alt="" />
           <span v-else class="photo-ph">🐾</span>
         </div>
         <div class="queue-main">
@@ -24,8 +24,9 @@
             <span class="customer">{{ o.wechatName || o.customerName }}</span>
             <span class="status" :style="{ color: statusColor(o) }">{{ statusLabel(o) }}</span>
           </div>
-          <div class="row2">
-            <span class="cat">🐱 {{ o.catName }}</span>
+          <div v-if="o.catName || (o.catCount || 0) > 1" class="row2">
+            <span v-if="o.catName" class="cat">🐱 {{ o.catName }}</span>
+            <em v-if="(o.catCount || 0) > 1" class="cnt">{{ o.catCount }}只猫</em>
           </div>
         </div>
         <span class="arrow">›</span>
@@ -35,12 +36,18 @@
     <!-- 订单详情弹层 -->
     <div v-if="detailOrder" class="detail-overlay" @click.self="detailOrder = null">
       <div class="detail-panel">
-        <div class="detail-title">{{ detailOrder.catName }} · {{ detailOrder.wechatName || detailOrder.customerName }}</div>
+        <div class="detail-title">
+          <template v-if="detailOrder.catName">{{ detailOrder.catName }} · </template>{{ detailOrder.wechatName || detailOrder.customerName }}
+        </div>
 
-        <div v-if="detailOrder.catPhoto" class="detail-photo"><img :src="detailOrder.catPhoto" alt="" /></div>
+        <div v-if="detailOrder.catPhotos && detailOrder.catPhotos.length" class="detail-photos">
+          <img v-for="(p, i) in detailOrder.catPhotos" :key="i" :src="p" alt="" />
+        </div>
 
         <div class="d-row"><span>排队编号</span><b>{{ queueNo(detailOrder.id) }}</b></div>
         <div class="d-row"><span>客户微信名</span><b>{{ detailOrder.wechatName || '—' }}</b></div>
+        <div v-if="detailOrder.catName" class="d-row"><span>猫咪名字</span><b>{{ detailOrder.catName }}</b></div>
+        <div v-if="(detailOrder.catCount || 0) > 1" class="d-row"><span>猫咪数量</span><b>{{ detailOrder.catCount }}</b></div>
         <div class="d-row"><span>下单时间</span><b>{{ fmtTime(detailOrder.orderTime || detailOrder.createdAt) }}</b></div>
         <div class="d-row"><span>付款状态</span><b :style="{ color: statusColor(detailOrder) }">{{ statusLabel(detailOrder) }}</b></div>
         <div class="d-row"><span>联系电话</span><b>{{ detailOrder.phone || '—' }}</b></div>
@@ -49,9 +56,9 @@
         <div v-if="detailOrder.note" class="d-row"><span>备注</span><b>{{ detailOrder.note }}</b></div>
 
         <div class="amounts">
-          <div class="amount-row"><span>排队定金</span><b>¥{{ detailOrder.depositDue }}{{ detailOrder.depositPaid ? ' ✓' : '' }}</b></div>
-          <div class="amount-row"><span>制作定金</span><b>¥{{ detailOrder.makingDue }}{{ detailOrder.makingPaid ? ' ✓' : '' }}</b></div>
+          <div class="amount-row"><span>定金</span><b>¥{{ detailOrder.depositDue }}{{ detailOrder.depositPaid ? ' ✓' : '' }}</b></div>
           <div class="amount-row"><span>尾款</span><b>¥{{ detailOrder.finalDue }}{{ detailOrder.finalPaid ? ' ✓' : '' }}</b></div>
+          <div class="amount-row total"><span>总价</span><b>¥{{ detailOrder.depositDue + detailOrder.finalDue }}</b></div>
         </div>
 
         <button class="close-btn" @click="detailOrder = null">关闭</button>
@@ -218,19 +225,41 @@ function fmtTime(iso: string) {
   margin-bottom: 14px;
   text-align: center;
 }
-.detail-photo {
-  width: 110px;
-  height: 110px;
-  border-radius: 18px;
-  overflow: hidden;
+.detail-photo,
+.detail-photos {
   margin: 0 auto 14px;
-  background: #f5efe8;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
-.detail-photo img {
-  width: 100%;
-  height: 100%;
+.detail-photos img {
+  width: 92px;
+  height: 92px;
+  border-radius: 14px;
   object-fit: cover;
   display: block;
+}
+.row2 {
+  font-size: 13px;
+  color: #7a716d;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cnt {
+  font-style: normal;
+  background: #f5efe8;
+  color: #a98b84;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 11px;
+}
+.amount-row.total {
+  border-top: 1px dashed #e5ded8;
+  margin-top: 4px;
+  padding-top: 8px;
+  font-weight: 700;
 }
 .d-row {
   display: flex;
