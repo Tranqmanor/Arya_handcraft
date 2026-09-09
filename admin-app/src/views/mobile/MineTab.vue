@@ -1,43 +1,31 @@
 <template>
   <div class="tab-page">
-    <!-- 未登录 -->
-    <div v-if="!loggedIn" class="login-card">
-      <div class="login-title">管理员登录</div>
-      <div class="field"><label>账号</label><input v-model="loginUser" placeholder="admin" /></div>
-      <div class="field"><label>密码</label><input v-model="loginPass" type="password" placeholder="密码" @keyup.enter="doLogin" /></div>
-      <button class="login-btn" @click="doLogin">登 录</button>
-      <div class="login-tip">与后台管理网页账号密码一致</div>
+    <!-- 已登录(未登录被全局登录页拦截,不会进到这里) -->
+    <div class="profile-card">
+      <img class="avatar" :src="`${BASE}icons/default_avatar.png`" alt="头像" />
+      <div class="profile-meta">
+        <div class="nickname">{{ nickname || '管理员' }}</div>
+        <button class="edit-btn" @click="editName">修改昵称</button>
+      </div>
     </div>
 
-    <!-- 已登录 -->
-    <template v-else>
-      <!-- 头像区(点击可改昵称) -->
-      <div class="profile-card">
-        <img class="avatar" :src="`${BASE}icons/default_avatar.png`" alt="头像" />
-        <div class="profile-meta">
-          <div class="nickname">{{ nickname || '管理员' }}</div>
-          <button class="edit-btn" @click="editName">修改昵称</button>
-        </div>
-      </div>
+    <!-- 当前总收入 -->
+    <div class="income-box">
+      <span class="income-label">当前总收入</span>
+      <span class="income-value">¥{{ totalIncome }}</span>
+    </div>
 
-      <!-- 当前总收入 -->
-      <div class="income-box">
-        <span class="income-label">当前总收入</span>
-        <span class="income-value">¥{{ totalIncome }}</span>
+    <!-- 子菜单 -->
+    <div class="menu-card">
+      <div class="menu-item" @click="store.goto('manage')">
+        <span class="menu-icon">🛠️</span><span class="menu-label">管理</span><span class="arrow">›</span>
       </div>
-
-      <!-- 子菜单 -->
-      <div class="menu-card">
-        <div class="menu-item" @click="store.goto('manage')">
-          <span class="menu-icon">🛠️</span><span class="menu-label">管理</span><span class="arrow">›</span>
-        </div>
-        <div class="menu-item" @click="store.goto('stats')">
-          <span class="menu-icon">📊</span><span class="menu-label">账单统计</span><span class="arrow">›</span>
-        </div>
+      <div class="menu-item" @click="store.goto('stats')">
+        <span class="menu-icon">📊</span><span class="menu-label">账单统计</span><span class="arrow">›</span>
       </div>
+    </div>
 
-      <button class="logout-btn" @click="logout">退出登录</button>
-    </template>
+    <button class="logout-btn" @click="logout">退出登录</button>
   </div>
 </template>
 
@@ -45,55 +33,15 @@
 import { computed, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-import { adminLogin } from '@/api/online'
 import { summarize } from '@/local/bills'
 import { useAppStore } from '@/stores/app'
 
 
 const store = useAppStore()
 const BASE = import.meta.env.BASE_URL
-const loggedIn = ref(localStorage.getItem('arya_admin_logged') === '1')
-const loginUser = ref('admin')
-const loginPass = ref('')
 const nickname = ref(localStorage.getItem('arya_admin_nickname') || '')
 
 const totalIncome = computed(() => summarize(store.orders).totalReceived)
-
-async function doLogin() {
-  const saved = localStorage.getItem('arya_admin_pass')
-  if (!saved) {
-    // 首次登录:将输入的密码存为本地密码
-    if (!loginPass.value) {
-      ElMessage.warning('请输入密码')
-      return
-    }
-    localStorage.setItem('arya_admin_pass', loginPass.value)
-    localStorage.setItem('arya_admin_logged', '1')
-    loggedIn.value = true
-    ElMessage.success('已设为本地登录密码')
-    tryOnlineLogin(loginPass.value)
-    return
-  }
-  if (loginUser.value === 'admin' && loginPass.value === saved) {
-    localStorage.setItem('arya_admin_logged', '1')
-    loggedIn.value = true
-    tryOnlineLogin(loginPass.value)
-  } else {
-    ElMessage.error('账号或密码错误')
-  }
-}
-
-/** 双模式:本地校验通过后,静默尝试在线登录(在线模块需要 token) */
-async function tryOnlineLogin(pass: string) {
-  try {
-    const res = await adminLogin('admin', pass)
-    localStorage.setItem('admin_token', res.access_token)
-    ElMessage.success('在线功能已同步登录')
-  } catch {
-    // 密码与后台不一致或网络不可用:仅提示,不阻塞本地功能
-    ElMessage.info('在线模块未登录(密码与后台不一致或网络不可用),本地功能不受影响')
-  }
-}
 
 async function editName() {
   try {
@@ -110,9 +58,8 @@ async function editName() {
 }
 
 function logout() {
-  localStorage.setItem('arya_admin_logged', '0')
-  localStorage.removeItem('admin_token')
-  loggedIn.value = false
+  store.logout()
+  ElMessage.success('已退出登录')
 }
 </script>
 

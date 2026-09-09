@@ -43,10 +43,10 @@ import { useAppStore, type AppPage } from '@/stores/app'
 
 const store = useAppStore()
 
-/** 在线模块:需先「我的」登录获取 token */
+/** 在线模块:需登录时密码与后台一致才有 token */
 function openOnline(page: AppPage) {
   if (!localStorage.getItem('admin_token')) {
-    ElMessage.warning('请先在「我的」页登录(与后台账号密码一致)后使用在线功能')
+    ElMessage.warning('在线功能需使用后台账号密码登录(若密码不一致,请到「我的」退出后用后台密码重新登录)')
     return
   }
   store.page = page

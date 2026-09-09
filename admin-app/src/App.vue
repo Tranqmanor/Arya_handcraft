@@ -6,6 +6,7 @@ import ManageTab from '@/views/mobile/ManageTab.vue'
 import StatsTab from '@/views/mobile/StatsTab.vue'
 import MineTab from '@/views/mobile/MineTab.vue'
 import Welcome from '@/views/Welcome.vue'
+import LoginView from '@/views/LoginView.vue'
 import { useAppStore } from '@/stores/app'
 
 const store = useAppStore()
@@ -38,6 +39,9 @@ setTimeout(() => {
 <template>
   <!-- 欢迎页(冷启动展示) -->
   <Welcome v-if="showWelcome" />
+
+  <!-- 全局登录门禁:未登录只能看到登录页,不可进入任何功能 -->
+  <LoginView v-else-if="!store.loggedIn" />
 
   <div v-else class="app-root">
     <!-- 顶部导航 -->

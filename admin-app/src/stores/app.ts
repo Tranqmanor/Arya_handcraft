@@ -16,6 +16,8 @@ export const useAppStore = defineStore('app', {
     page: 'tabs' as AppPage,
     /** 当前激活的 Tab */
     activeTab: 'home' as TabKey,
+    /** 管理员登录态(全局门禁) */
+    loggedIn: localStorage.getItem('arya_admin_logged') === '1',
   }),
   getters: {
     /** 排队中订单(排队定金/制作定金已付、尾款未付),按录入顺序 */
@@ -46,6 +48,15 @@ export const useAppStore = defineStore('app', {
     goto(tab: TabKey, page: AppPage = 'tabs') {
       this.activeTab = tab
       this.page = page
+    },
+    login() {
+      this.loggedIn = true
+      localStorage.setItem('arya_admin_logged', '1')
+    },
+    logout() {
+      this.loggedIn = false
+      localStorage.setItem('arya_admin_logged', '0')
+      localStorage.removeItem('admin_token')
     },
   },
 })
