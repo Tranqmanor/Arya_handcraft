@@ -36,27 +36,31 @@
         <div class="field-row"><label>邮寄地址</label><input v-model="form.address" placeholder="选填" /></div>
         <div class="field-row"><label>备注</label><input v-model="form.note" placeholder="选填" /></div>
 
+        <div class="field-row">
+          <label>订单总价(元)</label>
+          <input v-model.number="form.totalPrice" type="number" min="0" placeholder="输入总价,自动计算各期款项" />
+        </div>
         <div class="amount-grid">
           <div class="amount-cell">
-            <label>排队定金(元)</label>
-            <input v-model.number="form.depositDue" type="number" min="0" />
+            <label>排队定金</label>
+            <div class="ro-box">¥{{ depositDue }}</div>
           </div>
           <div class="amount-cell">
-            <label>制作定金(元)</label>
-            <input v-model.number="form.makingDue" type="number" min="0" />
+            <label>制作定金</label>
+            <div class="ro-box">¥{{ makingDue }}</div>
           </div>
           <div class="amount-cell">
-            <label>尾款(元)</label>
-            <input v-model.number="form.finalDue" type="number" min="0" />
+            <label>尾款</label>
+            <div class="ro-box">¥{{ finalDue }}</div>
           </div>
         </div>
 
         <div class="field-row">
-          <label>付款状态(点击切换已付)</label>
+          <label>付款状态(单选,再点一次可取消)</label>
           <div class="pay-btns">
-            <button :class="['pay-btn', { on: form.depositPaid }]" @click="form.depositPaid = !form.depositPaid">排队定金</button>
-            <button :class="['pay-btn', { on: form.makingPaid }]" @click="form.makingPaid = !form.makingPaid">制作定金</button>
-            <button :class="['pay-btn', { on: form.finalPaid }]" @click="form.finalPaid = !form.finalPaid">尾款</button>
+            <button :class="['pay-btn', { on: payStatus === 'deposit' }]" @click="pickPay('deposit')">排队定金已付</button>
+            <button :class="['pay-btn', { on: payStatus === 'making' }]" @click="pickPay('making')">制作定金已付</button>
+            <button :class="['pay-btn', { on: payStatus === 'final' }]" @click="pickPay('final')">尾款已付</button>
           </div>
         </div>
 
@@ -72,6 +76,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { createLocalOrder, queueIndexOf } from '@/local/store'
 import { useAppStore } from '@/stores/app'
@@ -91,12 +96,25 @@ const form = reactive({
   phone: '',
   address: '',
   note: '',
-  depositDue: 0,
-  makingDue: 0,
-  finalDue: 0,
-  depositPaid: false,
-  makingPaid: false,
-  finalPaid: false,
+  totalPrice: 0,
+})
+
+/** 付款状态单选:未付 / 排队定金 / 制作定金 / 尾款(递进,保存时映射三布尔) */
+const payStatus = ref<'none' | 'deposit' | 'making' | 'final'>('none')
+
+function pickPay(s: 'deposit' | 'making' | 'final') {
+  payStatus.value = payStatus.value === s ? 'none' : s
+}
+
+// —— 自动计算:排队定金固定 0;制作定金 = floor10(总价×30%);尾款 = 余额 ——
+const depositDue = computed(() => 0)
+const makingDue = computed(() => {
+  const t = Number(form.totalPrice) || 0
+  return Math.floor((t * 0.3) / 10) * 10
+})
+const finalDue = computed(() => {
+  const t = Number(form.totalPrice) || 0
+  return Math.max(0, t - depositDue.value - makingDue.value)
 })
 
 const displayOrders = computed(() =>
@@ -113,7 +131,15 @@ function colorOf(o: LocalOrder) {
 
 function openCreate() {
   editingId.value = null
-  Object.assign(form, emptyForm())
+  Object.assign(form, {
+    customerName: '',
+    catName: '',
+    phone: '',
+    address: '',
+    note: '',
+    totalPrice: 0,
+  })
+  payStatus.value = 'none'
   formVisible.value = true
 }
 
@@ -125,19 +151,20 @@ function openEdit(o: LocalOrder) {
     phone: o.phone || '',
     address: o.address || '',
     note: o.note || '',
-    depositDue: o.depositDue,
-    makingDue: o.makingDue,
-    finalDue: o.finalDue,
-    depositPaid: o.depositPaid,
-    makingPaid: o.makingPaid,
-    finalPaid: o.finalPaid,
+    totalPrice: o.totalPrice ?? o.depositDue + o.makingDue + o.finalDue,
   })
+  payStatus.value = o.finalPaid ? 'final' : o.makingPaid ? 'making' : o.depositPaid ? 'deposit' : 'none'
   formVisible.value = true
 }
 
 function save() {
   if (!form.customerName.trim() || !form.catName.trim()) {
-    alert('客户姓名与猫咪名字为必填')
+    ElMessage.warning('客户姓名与猫咪名字为必填')
+    return
+  }
+  const total = Number(form.totalPrice) || 0
+  if (total <= 0) {
+    ElMessage.warning('请填写订单总价')
     return
   }
   const data = {
@@ -146,29 +173,41 @@ function save() {
     phone: form.phone.trim(),
     address: form.address.trim(),
     note: form.note.trim(),
-    depositDue: Number(form.depositDue) || 0,
-    makingDue: Number(form.makingDue) || 0,
-    finalDue: Number(form.finalDue) || 0,
-    depositPaid: form.depositPaid,
-    makingPaid: form.makingPaid,
-    finalPaid: form.finalPaid,
+    depositDue: depositDue.value,
+    makingDue: makingDue.value,
+    finalDue: finalDue.value,
+    // 单选状态 → 递进布尔(付款按顺序发生)
+    depositPaid: payStatus.value !== 'none',
+    makingPaid: payStatus.value === 'making' || payStatus.value === 'final',
+    finalPaid: payStatus.value === 'final',
   }
+  // 先关闭弹层再落库(本地存储为同步瞬时操作,保证点击立即有响应)
+  formVisible.value = false
   if (editingId.value) {
     const existing = orders.value.find((x) => x.id === editingId.value)
     if (existing) {
-      store.updateOrder({ ...existing, ...data })
+      store.updateOrder({ ...existing, ...data, totalPrice: total })
     }
   } else {
-    store.addOrder(createLocalOrder(data))
+    store.addOrder(createLocalOrder({ ...data, totalPrice: total }))
   }
-  formVisible.value = false
+  ElMessage.success('已保存')
 }
 
-function remove() {
+async function remove() {
   if (!editingId.value) return
-  if (!confirm(`确定删除「${form.catName}」这个订单?`)) return
+  try {
+    await ElMessageBox.confirm(`确定删除「${form.catName}」这个订单?`, '删除确认', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+    })
+  } catch {
+    return
+  }
   store.removeOrder(editingId.value)
   formVisible.value = false
+  ElMessage.success('已删除')
 }
 
 function exportCsv() {
@@ -177,22 +216,6 @@ function exportCsv() {
 
 function goBack() {
   emit('back')
-}
-
-function emptyForm() {
-  return {
-    customerName: '',
-    catName: '',
-    phone: '',
-    address: '',
-    note: '',
-    depositDue: 0,
-    makingDue: 0,
-    finalDue: 0,
-    depositPaid: false,
-    makingPaid: false,
-    finalPaid: false,
-  }
 }
 </script>
 
@@ -335,6 +358,18 @@ function emptyForm() {
   border-radius: 8px;
   font-size: 14px;
   background: #faf6f0;
+}
+
+/* 自动计算的只读金额框 */
+.ro-box {
+  padding: 10px 8px;
+  border: 1px dashed #e5ded8;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  color: #a98b84;
+  font-weight: 600;
+  text-align: center;
 }
 .pay-btns {
   display: flex;

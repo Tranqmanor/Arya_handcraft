@@ -5,6 +5,7 @@ export interface LocalOrder {
   id: string
   /** 录入时间(ISO,用作队列基础排序) */
   createdAt: string
+  totalPrice?: number
   /** 手动编辑的排队号(可为空,留空则按录入顺序自动编号) */
   queueNo?: number
 

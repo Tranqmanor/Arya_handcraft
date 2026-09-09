@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { adminLogin } from '@/api/online'
 import { summarize } from '@/local/bills'
@@ -95,11 +95,17 @@ async function tryOnlineLogin(pass: string) {
   }
 }
 
-function editName() {
-  const name = prompt('请输入昵称', nickname.value)
-  if (name != null) {
-    nickname.value = name
-    localStorage.setItem('arya_admin_nickname', name)
+async function editName() {
+  try {
+    const { value } = await ElMessageBox.prompt('请输入昵称', '修改昵称', {
+      inputValue: nickname.value,
+      inputPattern: /^.{1,20}$/,
+      inputErrorMessage: '1-20 个字符',
+    })
+    nickname.value = value
+    localStorage.setItem('arya_admin_nickname', value)
+  } catch {
+    /* 取消 */
   }
 }
 

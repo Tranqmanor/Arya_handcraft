@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { createCarousel, deleteCarousel, listCarousel, uploadImage, type OnlineCarousel } from '@/api/online'
 
@@ -126,7 +126,11 @@ async function save() {
 }
 
 async function remove(c: OnlineCarousel) {
-  if (!confirm('确定删除该轮播图?')) return
+  try {
+    await ElMessageBox.confirm('确定删除该轮播图?', '删除确认', { type: 'warning' })
+  } catch {
+    return
+  }
   await deleteCarousel(c.id)
   ElMessage.success('已删除')
   await load()

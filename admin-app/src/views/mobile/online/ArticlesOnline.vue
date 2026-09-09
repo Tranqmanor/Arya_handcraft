@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { createArticle, deleteArticle, listArticles, updateArticle, type OnlineArticle } from '@/api/online'
 
@@ -142,7 +142,11 @@ async function save() {
 
 async function remove() {
   if (!form.id) return
-  if (!confirm('确定删除该文章?')) return
+  try {
+    await ElMessageBox.confirm('确定删除该文章?', '删除确认', { type: 'warning' })
+  } catch {
+    return
+  }
   await deleteArticle(form.id)
   ElMessage.success('已删除')
   formVisible.value = false

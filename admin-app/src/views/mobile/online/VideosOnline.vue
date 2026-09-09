@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { createVideo, deleteVideo, listVideos, uploadImage, uploadVideo, type OnlineVideo } from '@/api/online'
 
@@ -144,7 +144,11 @@ async function save() {
 }
 
 async function remove(v: OnlineVideo) {
-  if (!confirm(`确定删除视频「${v.title}」?`)) return
+  try {
+    await ElMessageBox.confirm(`确定删除视频「${v.title}」?`, '删除确认', { type: 'warning' })
+  } catch {
+    return
+  }
   await deleteVideo(v.id)
   ElMessage.success('已删除')
   await load()
