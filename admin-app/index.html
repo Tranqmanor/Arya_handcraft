@@ -6,10 +6,49 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
-    <title>Arya手作 · 管理</title>
+    <title>Arya手作 · 毛毡小店</title>
+    <script>
+      // 白屏自诊断:JS 报错/资源加载失败直接显示在屏幕上(安卓 WebView 无控制台时定位用)
+      (function () {
+        function showLine(text) {
+          var d = document.getElementById('__diag');
+          if (!d) {
+            d = document.createElement('pre');
+            d.id = '__diag';
+            d.style.cssText =
+              'position:fixed;z-index:99999;left:0;right:0;bottom:0;max-height:45vh;overflow:auto;' +
+              'margin:0;padding:12px;color:#ff6b6b;background:rgba(0,0,0,.85);font-size:11px;white-space:pre-wrap;word-break:break-all';
+            document.documentElement.appendChild(d);
+          }
+          d.textContent += text + '\n';
+        }
+        window.addEventListener(
+          'error',
+          function (e) {
+            if (e.target && (e.target.src || e.target.href)) {
+              showLine('[资源加载失败] ' + (e.target.src || e.target.href));
+            } else {
+              showLine('[JS错误] ' + e.message + ' @ ' + (e.filename || '') + ':' + (e.lineno || ''));
+            }
+          },
+          true,
+        );
+        window.addEventListener('unhandledrejection', function (e) {
+          showLine('[Promise异常] ' + (e.reason && (e.reason.message || e.reason)) || e.reason);
+        });
+        // 3 秒后应用仍未挂载 → 提示模块未执行
+        setTimeout(function () {
+          var app = document.getElementById('app');
+          if (app && !app.children.length) {
+            showLine('[白屏] Vue 未挂载(index.html 已加载但 JS 模块未执行,见上方错误)');
+          }
+        }, 3000);
+        showLine('[启动] ' + location.href);
+      })();
+    </script>
+    <script type="module" crossorigin src="./src/main.ts"></script>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
