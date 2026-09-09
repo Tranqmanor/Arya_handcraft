@@ -80,22 +80,21 @@ async function tryOnlineLogin(pass: string) {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 56px;
+  gap: 28px;
   padding: 24px 32px calc(32px + env(safe-area-inset-bottom));
 }
 
-/* 1. 品牌头部卡片 */
+/* 1. 品牌头部卡片(背景与页面一致) */
 .brand-card {
   width: 100%;
   max-width: 380px;
-  background: #fff;
+  background: transparent;
   border-radius: 22px;
   padding: 26px 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  box-shadow: 0 6px 24px rgba(169, 139, 132, 0.12);
 }
 .brand-card img {
   width: 64px;
