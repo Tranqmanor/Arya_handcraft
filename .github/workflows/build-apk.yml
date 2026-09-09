@@ -33,10 +33,19 @@ jobs:
       - name: Assemble shell
         working-directory: android-shell
         run: |
+          # flutter create 可能改写 pubspec:先备份,create 后强制恢复
+          cp pubspec.yaml /tmp/pubspec.bak
+          flutter create --platforms=android --org app.arya --project-name arya_admin_app . || true
+          cp /tmp/pubspec.bak pubspec.yaml
+          grep -q "webapp/assets/" pubspec.yaml || { echo "pubspec 恢复失败"; cat pubspec.yaml; exit 1; }
+          flutter pub get
           rm -rf webapp && mkdir -p webapp
           cp -r ../admin-app/dist/* webapp/
-          flutter create --platforms=android --org app.arya --project-name arya_admin_app .
-          flutter pub get
+          ls -R webapp | head -20
+      - name: Generate launcher icon
+        working-directory: android-shell
+        run: dart run flutter_launcher_icons
+
       - name: Build release APK
         working-directory: android-shell
         run: flutter build apk --release
